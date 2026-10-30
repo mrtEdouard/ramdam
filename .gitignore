@@ -16,3 +16,6 @@ android/
 .idea/
 .vscode/*
 !.vscode/extensions.json
+
+# Sauvegardes de la base
+sauvegardes/

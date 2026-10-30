@@ -1,0 +1,1688 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Ramdam — Maquettes</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap"
+      rel="stylesheet"
+    />
+    <script src="vendor/lucide.min.js"></script>
+    <!--
+  Une seule structure, deux rendus :
+    ?m=maquette (défaut) : charte graphique finale
+    ?m=wire               : wireframe en niveaux de gris, photos remplacées par des zones
+  ?s=<id> affiche un seul écran en 393×852 (export, import Figma) ; sans ?s, planche complète.
+  Icônes : Lucide (licence ISC). Photos : Wikimedia Commons, voir CREDITS.md.
+-->
+    <style>
+      :root {
+        --accent: #ff5a3c;
+        --accent-soft: #ffede8;
+        --ink: #1c1a33;
+        --ink-2: #57556b;
+        --ink-3: #8c8a9e;
+        --bg: #faf8f5;
+        --surface: #ffffff;
+        --line: #ece8e1;
+        --ok: #1f9d7a;
+        --title: 'Bricolage Grotesque', 'DM Sans', sans-serif;
+        --text: 'DM Sans', sans-serif;
+      }
+      body.wire {
+        --accent: #3d3d3d;
+        --accent-soft: #eaeaea;
+        --ink: #222;
+        --ink-2: #5e5e5e;
+        --ink-3: #959595;
+        --bg: #f4f4f4;
+        --surface: #ffffff;
+        --line: #dcdcdc;
+        --ok: #5e5e5e;
+        --title: 'DM Sans', sans-serif;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: var(--text);
+        color: var(--ink);
+        background: #e7e3dc;
+        -webkit-font-smoothing: antialiased;
+      }
+      body.wire {
+        background: #d6d6d6;
+      }
+      svg.lucide {
+        width: 20px;
+        height: 20px;
+        stroke-width: 1.75;
+        flex: none;
+      }
+
+      /* Planche */
+      .board {
+        display: grid;
+        grid-template-columns: repeat(5, 393px);
+        gap: 56px 44px;
+        padding: 64px;
+        width: max-content;
+      }
+      .board-head {
+        grid-column: 1 / -1;
+        display: flex;
+        align-items: center;
+        gap: 18px;
+      }
+      .board-head .word {
+        font-family: 'Bricolage Grotesque', sans-serif;
+        font-weight: 800;
+        font-size: 44px;
+        letter-spacing: -2px;
+      }
+      .board-head small {
+        font-size: 16px;
+        color: var(--ink-2);
+        margin-left: 12px;
+      }
+      .label {
+        font-weight: 600;
+        font-size: 15px;
+        margin-bottom: 12px;
+        color: var(--ink);
+      }
+      .label span {
+        color: var(--ink-3);
+        font-weight: 400;
+      }
+
+      /* Écran */
+      .screen {
+        width: 393px;
+        height: 852px;
+        background: var(--bg);
+        position: relative;
+        overflow: hidden;
+        border-radius: 40px;
+        box-shadow: 0 24px 48px -28px rgba(28, 26, 51, 0.45);
+        display: flex;
+        flex-direction: column;
+      }
+      body.single {
+        background: var(--bg);
+      }
+      body.single .board {
+        display: block;
+        padding: 0;
+      }
+      body.single .label,
+      body.single .board-head,
+      body.single .slot {
+        display: none;
+      }
+      body.single .slot.on {
+        display: block;
+      }
+      body.single .screen {
+        border-radius: 0;
+        box-shadow: none;
+      }
+
+      .status {
+        height: 48px;
+        flex: none;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 6px 28px 0;
+        font-size: 15px;
+        font-weight: 600;
+      }
+      .status .sys {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+      }
+      .status .sys i {
+        display: block;
+        width: 18px;
+        height: 10px;
+        border: 1.5px solid var(--ink);
+        border-radius: 3px;
+        position: relative;
+      }
+      .status .sys i::after {
+        content: '';
+        position: absolute;
+        inset: 1.5px;
+        right: 5px;
+        background: var(--ink);
+        border-radius: 1px;
+      }
+      .status .sys b {
+        width: 16px;
+        height: 10px;
+        background: linear-gradient(
+          to right,
+          var(--ink) 0 3px,
+          transparent 3px 5px,
+          var(--ink) 5px 8px,
+          transparent 8px 10px,
+          var(--ink) 10px 13px,
+          transparent 13px
+        );
+        clip-path: polygon(0 100%, 100% 0, 100% 100%);
+      }
+      .content {
+        flex: 1;
+        overflow: hidden;
+        padding: 0 20px;
+      }
+      .with-nav {
+        padding-bottom: 92px;
+      }
+
+      .appbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 4px 20px 16px;
+      }
+      .appbar h1 {
+        font-family: var(--title);
+        font-weight: 800;
+        font-size: 28px;
+        letter-spacing: -0.8px;
+      }
+      .lockup {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .lockup .word {
+        font-family: 'Bricolage Grotesque', sans-serif;
+        font-weight: 800;
+        font-size: 26px;
+        letter-spacing: -1.2px;
+      }
+      body.wire .lockup .word {
+        font-family: var(--title);
+      }
+      .topbar {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 4px 20px 12px;
+      }
+      .topbar h2 {
+        font-family: var(--title);
+        font-size: 19px;
+        font-weight: 700;
+        flex: 1;
+      }
+      .icon-btn {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        display: grid;
+        place-items: center;
+        color: var(--ink);
+        flex: none;
+      }
+
+      .avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        font-weight: 700;
+        font-size: 13px;
+        flex: none;
+        color: var(--ink);
+        background: #f1e4d6;
+      }
+      .av-b {
+        background: #dce7e2;
+      }
+      .av-c {
+        background: #e3e0f1;
+      }
+      .av-d {
+        background: #f4dcd5;
+      }
+      body.wire .avatar {
+        background: #e2e2e2;
+      }
+
+      .h-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin: 6px 0 12px;
+      }
+      .h-section h3 {
+        font-family: var(--title);
+        font-size: 19px;
+        font-weight: 700;
+        letter-spacing: -0.3px;
+      }
+      .h-section a {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--accent);
+        text-decoration: none;
+      }
+      body.wire .h-section a {
+        color: var(--ink-2);
+        text-decoration: underline;
+      }
+
+      .search {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 12px 14px;
+        color: var(--ink-3);
+        font-size: 15px;
+        margin-bottom: 14px;
+      }
+      .filters {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 16px;
+        overflow: hidden;
+      }
+      .filter {
+        white-space: nowrap;
+        flex: none;
+        padding: 8px 13px;
+        border-radius: 10px;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--ink-2);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .filter.on {
+        background: var(--ink);
+        color: #fff;
+        border-color: var(--ink);
+      }
+      .filter svg.lucide {
+        width: 15px;
+        height: 15px;
+      }
+      .meta-line {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 4px 12px;
+        font-size: 13px;
+        color: var(--ink-2);
+      }
+      .meta-line span {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .meta-line svg.lucide {
+        width: 15px;
+        height: 15px;
+        color: var(--ink-3);
+      }
+      .kicker {
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--accent);
+      }
+      body.wire .kicker {
+        color: var(--ink-2);
+      }
+
+      /* Photos */
+      .photo {
+        position: relative;
+        overflow: hidden;
+        background: #ddd center / cover no-repeat;
+      }
+      body.wire .photo {
+        background-image: none !important;
+        background-color: #e3e3e3;
+      }
+      body.wire .photo::before,
+      body.wire .photo::after {
+        content: '';
+        position: absolute;
+        left: -20%;
+        right: -20%;
+        top: 50%;
+        height: 1px;
+        background: #bdbdbd;
+        transform: rotate(var(--r, 24deg));
+      }
+      body.wire .photo::after {
+        --r: -24deg;
+      }
+
+      /* Carte d'activité (carrousel) */
+      .rail {
+        display: flex;
+        gap: 12px;
+        margin: 0 -20px 22px;
+        padding: 0 20px;
+        overflow: hidden;
+      }
+      .act {
+        flex: none;
+        width: 236px;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        overflow: hidden;
+      }
+      .act .photo {
+        height: 132px;
+      }
+      .act .body {
+        padding: 12px 14px 14px;
+      }
+      .act h4 {
+        font-size: 16px;
+        font-weight: 700;
+        margin: 4px 0 8px;
+        line-height: 1.25;
+      }
+      .author {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        color: var(--ink-2);
+        margin-top: 10px;
+      }
+      .author .avatar {
+        width: 24px;
+        height: 24px;
+        font-size: 10px;
+      }
+      .author b {
+        color: var(--ink);
+        font-weight: 600;
+      }
+
+      /* Liste d'offres */
+      .offer {
+        display: flex;
+        gap: 12px;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        padding: 10px;
+        margin-bottom: 10px;
+        align-items: center;
+      }
+      .offer .photo {
+        width: 72px;
+        height: 72px;
+        border-radius: 12px;
+        flex: none;
+      }
+      .offer h4 {
+        font-size: 15px;
+        font-weight: 700;
+        line-height: 1.25;
+      }
+      .offer .org {
+        font-size: 13px;
+        color: var(--ink-2);
+        margin: 2px 0 6px;
+      }
+      .offer > svg.lucide {
+        color: var(--ink-3);
+        margin-left: auto;
+      }
+      .verified {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        color: var(--ok);
+        font-weight: 600;
+        font-size: 12px;
+      }
+      .verified svg.lucide {
+        width: 14px;
+        height: 14px;
+        color: var(--ok);
+      }
+
+      /* Grande carte (explorer) */
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        overflow: hidden;
+        margin-bottom: 14px;
+      }
+      .card .photo {
+        height: 150px;
+      }
+      .card .body {
+        padding: 12px 14px 12px;
+      }
+      .card h4 {
+        font-size: 17px;
+        font-weight: 700;
+        margin: 4px 0 8px;
+      }
+      .card .actions {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        border-top: 1px solid var(--line);
+        margin-top: 12px;
+        padding-top: 10px;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--ink-2);
+      }
+      .card .actions span {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+      }
+      .card .actions svg.lucide {
+        width: 17px;
+        height: 17px;
+      }
+      .save {
+        margin-left: auto;
+        color: var(--accent);
+      }
+      .save.done {
+        color: var(--ink);
+      }
+
+      .btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        border-radius: 14px;
+        padding: 15px;
+        font-weight: 700;
+        font-size: 16px;
+      }
+      .btn.primary {
+        background: var(--accent);
+        color: #fff;
+      }
+      .btn.secondary {
+        background: var(--surface);
+        color: var(--ink);
+        border: 1px solid var(--ink);
+      }
+      .btn.ghost {
+        background: transparent;
+        color: var(--ink-2);
+        padding: 10px;
+        font-weight: 600;
+        font-size: 14px;
+      }
+      .btn svg.lucide {
+        width: 18px;
+        height: 18px;
+      }
+
+      .field {
+        margin-bottom: 14px;
+      }
+      .field label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: 6px;
+      }
+      .input {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 12px 14px;
+        font-size: 15px;
+        color: var(--ink-3);
+      }
+      .input.filled {
+        color: var(--ink);
+      }
+      .input svg.lucide {
+        width: 18px;
+        height: 18px;
+        color: var(--ink-3);
+      }
+      .input.area {
+        height: 70px;
+        align-items: flex-start;
+      }
+      .input .end {
+        margin-left: auto;
+      }
+      .hint {
+        font-size: 12px;
+        color: var(--ink-3);
+        margin-top: 5px;
+      }
+      .row {
+        display: flex;
+        gap: 10px;
+      }
+      .row > * {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .nav {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 84px;
+        background: var(--surface);
+        border-top: 1px solid var(--line);
+        display: flex;
+        justify-content: space-around;
+        align-items: flex-start;
+        padding-top: 10px;
+      }
+      .nav a {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--ink-3);
+        text-decoration: none;
+        width: 64px;
+      }
+      .nav a svg.lucide {
+        width: 22px;
+        height: 22px;
+      }
+      .nav a.on {
+        color: var(--ink);
+      }
+      .nav .plus {
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
+        background: var(--accent);
+        color: #fff;
+        display: grid;
+        place-items: center;
+        margin-top: -2px;
+      }
+      .nav .plus svg.lucide {
+        width: 24px;
+        height: 24px;
+        stroke-width: 2.25;
+      }
+
+      .h1 {
+        font-family: var(--title);
+        font-size: 25px;
+        font-weight: 800;
+        letter-spacing: -0.6px;
+        line-height: 1.12;
+      }
+      .sub-title {
+        font-family: var(--title);
+        font-size: 17px;
+        font-weight: 700;
+        margin: 18px 0 8px;
+      }
+      .text {
+        font-size: 14px;
+        line-height: 1.55;
+        color: var(--ink-2);
+      }
+      ul.list,
+      ol.list {
+        padding-left: 18px;
+        font-size: 14px;
+        line-height: 1.6;
+        color: var(--ink-2);
+      }
+
+      .facts {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: var(--surface);
+        margin: 14px 0;
+      }
+      .facts div {
+        padding: 10px 6px;
+        text-align: center;
+        border-left: 1px solid var(--line);
+        font-size: 12px;
+        color: var(--ink-3);
+      }
+      .facts div:first-child {
+        border-left: 0;
+      }
+      .facts b {
+        display: block;
+        font-size: 14px;
+        color: var(--ink);
+        margin-top: 3px;
+      }
+      .facts svg.lucide {
+        width: 16px;
+        height: 16px;
+        color: var(--ink-3);
+      }
+
+      .comment {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 12px;
+        font-size: 14px;
+      }
+      .comment .avatar {
+        width: 30px;
+        height: 30px;
+        font-size: 11px;
+      }
+      .comment b {
+        font-weight: 600;
+      }
+      .comment p {
+        color: var(--ink-2);
+        margin-top: 2px;
+        line-height: 1.45;
+      }
+      .comment small {
+        display: block;
+        font-size: 12px;
+        color: var(--ink-3);
+        margin-top: 4px;
+      }
+      .comment.reply {
+        margin-left: 40px;
+      }
+
+      .xp {
+        border: 1px solid var(--line);
+        background: var(--surface);
+        border-radius: 18px;
+        padding: 14px 16px;
+        margin-bottom: 16px;
+      }
+      .xp .top {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-bottom: 10px;
+        font-size: 13px;
+        color: var(--ink-2);
+      }
+      .xp .top b {
+        font-family: var(--title);
+        font-size: 18px;
+        color: var(--ink);
+      }
+      .bar {
+        height: 8px;
+        border-radius: 999px;
+        background: var(--accent-soft);
+        overflow: hidden;
+      }
+      .bar i {
+        display: block;
+        height: 100%;
+        width: 68%;
+        background: var(--accent);
+        border-radius: 999px;
+      }
+      .xp small {
+        display: flex;
+        justify-content: space-between;
+        font-size: 12px;
+        color: var(--ink-3);
+        margin-top: 6px;
+      }
+
+      .seg {
+        display: flex;
+        border-bottom: 1px solid var(--line);
+        margin-bottom: 14px;
+      }
+      .seg div {
+        padding: 10px 2px;
+        margin-right: 22px;
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--ink-3);
+        border-bottom: 2px solid transparent;
+        margin-bottom: -1px;
+      }
+      .seg div.on {
+        color: var(--ink);
+        border-color: var(--ink);
+      }
+      .grid2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+      .tile {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        overflow: hidden;
+      }
+      .tile .photo {
+        height: 96px;
+      }
+      .tile .body {
+        padding: 9px 10px 11px;
+      }
+      .tile p {
+        font-size: 14px;
+        font-weight: 700;
+        line-height: 1.25;
+      }
+      .tile small {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 12px;
+        color: var(--ink-3);
+        margin-top: 4px;
+      }
+      .tile small svg.lucide {
+        width: 13px;
+        height: 13px;
+      }
+
+      .radio-cards {
+        display: flex;
+        gap: 10px;
+      }
+      .radio-card {
+        flex: 1;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 12px;
+      }
+      .radio-card.on {
+        border: 2px solid var(--ink);
+        padding: 11px;
+      }
+      .radio-card b {
+        display: block;
+        font-size: 15px;
+        margin-top: 8px;
+      }
+      .radio-card small {
+        font-size: 12px;
+        color: var(--ink-2);
+      }
+      .check {
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+        font-size: 13px;
+        color: var(--ink-2);
+        margin: 16px 0;
+        line-height: 1.45;
+      }
+      .box {
+        width: 20px;
+        height: 20px;
+        border-radius: 6px;
+        border: 1.5px solid var(--ink-3);
+        flex: none;
+        margin-top: 1px;
+      }
+      .link {
+        color: var(--ink);
+        text-decoration: underline;
+      }
+
+      .upload {
+        border: 1.5px dashed var(--line);
+        border-radius: 16px;
+        height: 116px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        color: var(--ink-3);
+        font-size: 13px;
+        margin-bottom: 14px;
+        background: var(--surface);
+      }
+      .upload b {
+        color: var(--ink);
+        font-size: 14px;
+      }
+      .notice {
+        display: flex;
+        gap: 10px;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 12px 14px;
+        font-size: 13px;
+        color: var(--ink-2);
+        margin: 16px 0;
+        line-height: 1.45;
+      }
+      .notice svg.lucide {
+        color: var(--ink-3);
+        width: 18px;
+        height: 18px;
+      }
+      .settings {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        overflow: hidden;
+      }
+      .settings div {
+        padding: 13px 14px;
+        border-bottom: 1px solid var(--line);
+        font-size: 14px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .settings div svg.lucide:first-child {
+        color: var(--ink-3);
+      }
+      .settings div svg.lucide:last-child {
+        margin-left: auto;
+        color: var(--ink-3);
+        width: 18px;
+        height: 18px;
+      }
+      .settings div:last-child {
+        border-bottom: 0;
+        color: #c2410c;
+      }
+      body.wire .settings div:last-child {
+        color: var(--ink);
+      }
+      .stats3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: var(--surface);
+        margin: 16px 0;
+      }
+      .stats3 div {
+        padding: 12px 8px;
+        text-align: center;
+        border-left: 1px solid var(--line);
+      }
+      .stats3 div:first-child {
+        border-left: 0;
+      }
+      .stats3 b {
+        display: block;
+        font-family: var(--title);
+        font-size: 20px;
+      }
+      .stats3 small {
+        font-size: 12px;
+        color: var(--ink-2);
+      }
+      .badges {
+        display: flex;
+        gap: 10px;
+      }
+      .badge {
+        flex: 1;
+        border: 1px solid var(--line);
+        background: var(--surface);
+        border-radius: 14px;
+        padding: 10px 6px;
+        text-align: center;
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--ink-2);
+      }
+      .badge svg.lucide {
+        width: 22px;
+        height: 22px;
+        color: var(--accent);
+        display: block;
+        margin: 0 auto 6px;
+      }
+      body.wire .badge svg.lucide {
+        color: var(--ink-2);
+      }
+      .segmented {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="board">
+      <div class="board-head">
+        <svg width="54" height="54" viewBox="0 0 64 64">
+          <rect x="9" y="27" width="12" height="28" rx="6" fill="var(--ink)" />
+          <rect x="26" y="9" width="12" height="46" rx="6" fill="var(--accent)" />
+          <rect x="43" y="33" width="12" height="22" rx="6" fill="var(--ink)" />
+        </svg>
+        <span class="word">ramdam</span
+        ><small id="board-sub">Maquettes · 10 écrans · mobile 393 × 852</small>
+      </div>
+
+      <!-- 1. Inscription -->
+      <div class="slot" data-s="inscription">
+        <div class="label">1. Inscription <span>· visiteur</span></div>
+        <div class="screen">
+          <div class="status">
+            <span>9:41</span><span class="sys"><b></b><i></i></span>
+          </div>
+          <div class="content">
+            <div class="lockup" style="margin: 18px 0 26px">
+              <svg width="34" height="34" viewBox="0 0 64 64">
+                <rect x="9" y="27" width="12" height="28" rx="6" fill="var(--ink)" />
+                <rect x="26" y="9" width="12" height="46" rx="6" fill="var(--accent)" />
+                <rect x="43" y="33" width="12" height="22" rx="6" fill="var(--ink)" /></svg
+              ><span class="word">ramdam</span>
+            </div>
+            <div class="h1">Créer un compte</div>
+            <p class="text" style="margin: 6px 0 20px">
+              Partage tes activités et trouve ta prochaine équipe d'anim.
+            </p>
+            <div class="field">
+              <label>Email</label>
+              <div class="input filled"><i data-lucide="mail"></i>lea.martin@exemple.fr</div>
+            </div>
+            <div class="field">
+              <label>Pseudo</label>
+              <div class="input filled"><i data-lucide="at-sign"></i>lea.anim</div>
+            </div>
+            <div class="field">
+              <label>Mot de passe</label>
+              <div class="input filled">
+                <i data-lucide="lock"></i>••••••••••••<i data-lucide="eye" class="end"></i>
+              </div>
+              <div class="hint">12 caractères minimum</div>
+            </div>
+            <div class="field">
+              <label>Type de compte</label>
+              <div class="radio-cards">
+                <div class="radio-card on">
+                  <i data-lucide="backpack"></i><b>Animateur</b
+                  ><small>Je partage des activités</small>
+                </div>
+                <div class="radio-card">
+                  <i data-lucide="megaphone"></i><b>Directeur</b
+                  ><small>Je publie aussi des offres</small>
+                </div>
+              </div>
+            </div>
+            <div class="check">
+              <div class="box"></div>
+              <span
+                >J'accepte les <span class="link">conditions d'utilisation</span> et la
+                <span class="link">politique de confidentialité</span></span
+              >
+            </div>
+            <div class="btn primary">Créer mon compte</div>
+            <div class="btn ghost">Déjà inscrit ? <span class="link">Se connecter</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Accueil -->
+      <div class="slot" data-s="accueil">
+        <div class="label">2. Accueil <span>· activités et offres récentes</span></div>
+        <div class="screen">
+          <div class="status">
+            <span>9:41</span><span class="sys"><b></b><i></i></span>
+          </div>
+          <div class="appbar">
+            <div class="lockup">
+              <svg width="30" height="30" viewBox="0 0 64 64">
+                <rect x="9" y="27" width="12" height="28" rx="6" fill="var(--ink)" />
+                <rect x="26" y="9" width="12" height="46" rx="6" fill="var(--accent)" />
+                <rect x="43" y="33" width="12" height="22" rx="6" fill="var(--ink)" /></svg
+              ><span class="word">ramdam</span>
+            </div>
+            <div class="avatar">LM</div>
+          </div>
+          <div class="content with-nav">
+            <div class="h-section">
+              <h3>Activités récentes publiées</h3>
+              <a>Tout voir</a>
+            </div>
+            <div class="rail">
+              <div class="act">
+                <div class="photo" style="background-image: url(img/veillee.jpg)"></div>
+                <div class="body">
+                  <div class="kicker">Veillée</div>
+                  <h4>Loup-garou sous les étoiles</h4>
+                  <div class="meta-line">
+                    <span><i data-lucide="smile"></i>8-12 ans</span
+                    ><span><i data-lucide="clock"></i>1 h</span>
+                  </div>
+                  <div class="author">
+                    <div class="avatar av-b">JR</div>
+                    <b>julie.anim</b> · il y a 2 h
+                  </div>
+                </div>
+              </div>
+              <div class="act">
+                <div class="photo" style="background-image: url(img/foret.jpg)"></div>
+                <div class="body">
+                  <div class="kicker">Grand jeu</div>
+                  <h4>La chasse au trésor du capitaine</h4>
+                  <div class="meta-line">
+                    <span><i data-lucide="smile"></i>6-10 ans</span
+                    ><span><i data-lucide="clock"></i>2 h</span>
+                  </div>
+                  <div class="author">
+                    <div class="avatar av-c">KB</div>
+                    <b>karim_gj</b> · hier
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="h-section">
+              <h3>Offres récentes publiées</h3>
+              <a>Tout voir</a>
+            </div>
+            <div class="offer">
+              <div class="photo" style="background-image: url(img/montagne.jpg)"></div>
+              <div>
+                <h4>Animateur·rice séjour montagne</h4>
+                <div class="org">Altitude Jeunes · Savoie</div>
+                <div class="meta-line">
+                  <span><i data-lucide="calendar"></i>5 – 26 juil.</span
+                  ><span class="verified"><i data-lucide="badge-check"></i>Directeur</span>
+                </div>
+              </div>
+            </div>
+            <div class="offer">
+              <div class="photo" style="background-image: url(img/atelier.jpg)"></div>
+              <div>
+                <h4>Animateur·rice accueil de loisirs</h4>
+                <div class="org">ALSH Les Lucioles · Hérault</div>
+                <div class="meta-line">
+                  <span><i data-lucide="calendar"></i>Mercredis</span
+                  ><span class="verified"><i data-lucide="badge-check"></i>Directeur</span>
+                </div>
+              </div>
+            </div>
+            <div class="offer">
+              <div class="photo" style="background-image: url(img/mer.jpg)"></div>
+              <div>
+                <h4>Animateur·rice séjour mer</h4>
+                <div class="org">Cap Évasion · Côtes-d'Armor</div>
+                <div class="meta-line">
+                  <span><i data-lucide="calendar"></i>Août</span
+                  ><span class="verified"><i data-lucide="badge-check"></i>Directeur</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <nav class="nav">
+            <a class="on"><i data-lucide="house"></i>Accueil</a
+            ><a><i data-lucide="compass"></i>Activités</a
+            ><a
+              ><span class="plus"><i data-lucide="plus"></i></span></a
+            ><a><i data-lucide="briefcase"></i>Offres</a><a><i data-lucide="backpack"></i>Malle</a>
+          </nav>
+        </div>
+      </div>
+
+      <!-- 3. Activités -->
+      <div class="slot" data-s="activites">
+        <div class="label">3. Explorer les activités</div>
+        <div class="screen">
+          <div class="status">
+            <span>9:41</span><span class="sys"><b></b><i></i></span>
+          </div>
+          <div class="appbar">
+            <h1>Activités</h1>
+            <div class="avatar">LM</div>
+          </div>
+          <div class="content with-nav">
+            <div class="search"><i data-lucide="search"></i>Rechercher une activité</div>
+            <div class="filters">
+              <span class="filter on">Tout</span><span class="filter">Grands jeux</span
+              ><span class="filter">Veillées</span><span class="filter">Jeux</span
+              ><span class="filter"><i data-lucide="sliders-horizontal"></i>Filtres</span>
+            </div>
+            <div class="card">
+              <div class="photo" style="background-image: url(img/fresque.jpg)"></div>
+              <div class="body">
+                <div class="kicker">Manuel</div>
+                <h4>Fresque collective</h4>
+                <div class="meta-line">
+                  <span><i data-lucide="smile"></i>3-6 ans</span
+                  ><span><i data-lucide="clock"></i>40 min</span
+                  ><span><i data-lucide="users"></i>4-12</span>
+                </div>
+                <div class="actions">
+                  <span><i data-lucide="heart"></i>64</span
+                  ><span><i data-lucide="message-circle"></i>9</span
+                  ><span class="save"><i data-lucide="bookmark-plus"></i>Ma Malle</span>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="photo" style="background-image: url(img/relais.jpg)"></div>
+              <div class="body">
+                <div class="kicker">Sportif</div>
+                <h4>Relais des saisons</h4>
+                <div class="meta-line">
+                  <span><i data-lucide="smile"></i>6-10 ans</span
+                  ><span><i data-lucide="clock"></i>30 min</span
+                  ><span><i data-lucide="users"></i>8-24</span>
+                </div>
+                <div class="actions">
+                  <span><i data-lucide="heart"></i>41</span
+                  ><span><i data-lucide="message-circle"></i>5</span
+                  ><span class="save done"><i data-lucide="bookmark-check"></i>Dans ma Malle</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <nav class="nav">
+            <a><i data-lucide="house"></i>Accueil</a
+            ><a class="on"><i data-lucide="compass"></i>Activités</a
+            ><a
+              ><span class="plus"><i data-lucide="plus"></i></span></a
+            ><a><i data-lucide="briefcase"></i>Offres</a><a><i data-lucide="backpack"></i>Malle</a>
+          </nav>
+        </div>
+      </div>
+
+      <!-- 4. Détail fiche -->
+      <div class="slot" data-s="fiche">
+        <div class="label">4. Détail d'une activité</div>
+        <div class="screen">
+          <div
+            class="photo"
+            style="height: 250px; flex: none; background-image: url(img/foret.jpg)"
+          >
+            <div class="status" style="position: absolute; inset: 0 0 auto; color: #fff">
+              <span>9:41</span>
+            </div>
+            <div
+              style="
+                position: absolute;
+                top: 52px;
+                left: 20px;
+                right: 20px;
+                display: flex;
+                justify-content: space-between;
+              "
+            >
+              <div class="icon-btn"><i data-lucide="arrow-left"></i></div>
+              <div class="icon-btn"><i data-lucide="flag"></i></div>
+            </div>
+          </div>
+          <div class="content" style="padding-top: 16px">
+            <div class="kicker">Grand jeu</div>
+            <div class="h1" style="margin: 4px 0 10px">La chasse au trésor du capitaine</div>
+            <div class="author" style="margin: 0">
+              <div class="avatar av-c">KB</div>
+              <b>karim_gj</b> · niveau 9 · publiée hier
+            </div>
+            <div class="facts">
+              <div><i data-lucide="smile"></i><b>6-10 ans</b></div>
+              <div><i data-lucide="clock"></i><b>2 h</b></div>
+              <div><i data-lucide="users"></i><b>12-40</b></div>
+              <div><i data-lucide="heart"></i><b>112</b></div>
+            </div>
+            <div class="row" style="margin-bottom: 4px">
+              <div class="btn primary" style="padding: 12px">
+                <i data-lucide="bookmark-plus"></i>Ajouter à ma Malle
+              </div>
+            </div>
+            <div class="sub-title">Matériel</div>
+            <ul class="list">
+              <li>Cartes au trésor, un coffre, des foulards</li>
+              <li>8 indices imprimés</li>
+            </ul>
+            <div class="sub-title">Commentaires · 18</div>
+            <div class="comment">
+              <div class="avatar av-d">LM</div>
+              <div>
+                <b>lea.anim</b>
+                <p>Testé avec mes 8-10 ans, gros succès.</p>
+                <small>il y a 3 h · Répondre</small>
+              </div>
+            </div>
+            <div class="comment reply">
+              <div class="avatar av-c">KB</div>
+              <div>
+                <b>karim_gj</b>
+                <p>Merci ! Cache le coffre loin du départ.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. Créer une fiche -->
+      <div class="slot" data-s="creer-fiche">
+        <div class="label">5. Créer une activité <span>· bouton +</span></div>
+        <div class="screen">
+          <div class="status">
+            <span>9:41</span><span class="sys"><b></b><i></i></span>
+          </div>
+          <div class="topbar">
+            <div class="icon-btn"><i data-lucide="x"></i></div>
+            <h2>Nouvelle activité</h2>
+          </div>
+          <div class="content">
+            <div class="upload">
+              <i data-lucide="image-plus"></i><b>Ajouter une photo</b>JPEG, PNG ou WebP · 5 Mo max
+            </div>
+            <div class="field">
+              <label>Titre</label>
+              <div class="input filled">Relais des saisons</div>
+            </div>
+            <div class="field">
+              <label>Type d'activité</label>
+              <div class="input filled">Sportif<i data-lucide="chevron-down" class="end"></i></div>
+            </div>
+            <div class="row">
+              <div class="field">
+                <label>Âge</label>
+                <div class="input filled">6 – 10 ans</div>
+              </div>
+              <div class="field">
+                <label>Durée</label>
+                <div class="input filled">30 min</div>
+              </div>
+            </div>
+            <div class="field">
+              <label
+                >Matériel
+                <span style="color: var(--ink-3); font-weight: 400">· facultatif</span></label
+              >
+              <div class="input area">Plots, ballons…</div>
+            </div>
+            <div class="field">
+              <label>Déroulement</label>
+              <div class="input area">Décris les étapes de l'activité…</div>
+            </div>
+            <div class="row">
+              <div class="btn secondary">Brouillon</div>
+              <div class="btn primary">Publier</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 6. Malle -->
+      <div class="slot" data-s="malle">
+        <div class="label">6. Ma Malle</div>
+        <div class="screen">
+          <div class="status">
+            <span>9:41</span><span class="sys"><b></b><i></i></span>
+          </div>
+          <div class="appbar">
+            <h1>Ma Malle</h1>
+            <div class="avatar">LM</div>
+          </div>
+          <div class="content with-nav">
+            <div class="xp">
+              <div class="top"><b>Niveau 7</b><span>Anim confirmée</span></div>
+              <div class="bar"><i></i></div>
+              <small><span>1 360 XP</span><span>640 XP avant le niveau 8</span></small>
+            </div>
+            <div class="seg">
+              <div>Mes activités · 4</div>
+              <div class="on">Favoris · 6</div>
+            </div>
+            <div class="filters">
+              <span class="filter on">Tout</span><span class="filter">Grands jeux</span
+              ><span class="filter">Veillées</span><span class="filter">Manuel</span>
+            </div>
+            <div class="grid2">
+              <div class="tile">
+                <div class="photo" style="background-image: url(img/veillee.jpg)"></div>
+                <div class="body">
+                  <p>Loup-garou sous les étoiles</p>
+                  <small><i data-lucide="link"></i>julie.anim</small>
+                </div>
+              </div>
+              <div class="tile">
+                <div class="photo" style="background-image: url(img/foret.jpg)"></div>
+                <div class="body">
+                  <p>Chasse au trésor du capitaine</p>
+                  <small><i data-lucide="link"></i>karim_gj</small>
+                </div>
+              </div>
+              <div class="tile">
+                <div class="photo" style="background-image: url(img/enquete.jpg)"></div>
+                <div class="body">
+                  <p>Cluedo géant</p>
+                  <small><i data-lucide="link"></i>karim_gj</small>
+                </div>
+              </div>
+              <div class="tile">
+                <div class="photo" style="background-image: url(img/theatre.jpg)"></div>
+                <div class="body">
+                  <p>Impro express</p>
+                  <small><i data-lucide="link"></i>tom_bafa</small>
+                </div>
+              </div>
+            </div>
+          </div>
+          <nav class="nav">
+            <a><i data-lucide="house"></i>Accueil</a><a><i data-lucide="compass"></i>Activités</a
+            ><a
+              ><span class="plus"><i data-lucide="plus"></i></span></a
+            ><a><i data-lucide="briefcase"></i>Offres</a
+            ><a class="on"><i data-lucide="backpack"></i>Malle</a>
+          </nav>
+        </div>
+      </div>
+
+      <!-- 7. Offres -->
+      <div class="slot" data-s="offres">
+        <div class="label">7. Offres de recrutement</div>
+        <div class="screen">
+          <div class="status">
+            <span>9:41</span><span class="sys"><b></b><i></i></span>
+          </div>
+          <div class="appbar">
+            <h1>Offres</h1>
+            <div class="avatar">LM</div>
+          </div>
+          <div class="content with-nav">
+            <div class="search"><i data-lucide="search"></i>Poste, structure, ville…</div>
+            <div class="filters">
+              <span class="filter"><i data-lucide="map-pin"></i>Région</span
+              ><span class="filter"><i data-lucide="calendar"></i>Période</span
+              ><span class="filter"><i data-lucide="building-2"></i>Structure</span>
+            </div>
+            <div class="offer">
+              <div class="photo" style="background-image: url(img/montagne.jpg)"></div>
+              <div>
+                <h4>Animateur·rice séjour montagne</h4>
+                <div class="org">Altitude Jeunes · Savoie</div>
+                <div class="meta-line">
+                  <span><i data-lucide="calendar"></i>5 – 26 juil.</span
+                  ><span><i data-lucide="graduation-cap"></i>BAFA</span>
+                </div>
+              </div>
+            </div>
+            <div class="offer">
+              <div class="photo" style="background-image: url(img/atelier.jpg)"></div>
+              <div>
+                <h4>Animateur·rice accueil de loisirs</h4>
+                <div class="org">ALSH Les Lucioles · Hérault</div>
+                <div class="meta-line">
+                  <span><i data-lucide="calendar"></i>Mercredis</span
+                  ><span><i data-lucide="graduation-cap"></i>BAFA</span>
+                </div>
+              </div>
+            </div>
+            <div class="offer">
+              <div class="photo" style="background-image: url(img/mer.jpg)"></div>
+              <div>
+                <h4>Animateur·rice séjour mer</h4>
+                <div class="org">Cap Évasion · Côtes-d'Armor</div>
+                <div class="meta-line">
+                  <span><i data-lucide="calendar"></i>Août</span
+                  ><span><i data-lucide="graduation-cap"></i>BAFA + SB</span>
+                </div>
+              </div>
+            </div>
+            <div class="offer">
+              <div class="photo" style="background-image: url(img/nature.jpg)"></div>
+              <div>
+                <h4>Animateur·rice mini-camp nature</h4>
+                <div class="org">Les Francs Lurons · Gard</div>
+                <div class="meta-line">
+                  <span><i data-lucide="calendar"></i>14 – 18 avr.</span
+                  ><span><i data-lucide="graduation-cap"></i>Stagiaire</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <nav class="nav">
+            <a><i data-lucide="house"></i>Accueil</a><a><i data-lucide="compass"></i>Activités</a
+            ><a
+              ><span class="plus"><i data-lucide="plus"></i></span></a
+            ><a class="on"><i data-lucide="briefcase"></i>Offres</a
+            ><a><i data-lucide="backpack"></i>Malle</a>
+          </nav>
+        </div>
+      </div>
+
+      <!-- 8. Détail offre -->
+      <div class="slot" data-s="offre">
+        <div class="label">8. Détail d'une offre</div>
+        <div class="screen">
+          <div
+            class="photo"
+            style="height: 210px; flex: none; background-image: url(img/montagne.jpg)"
+          >
+            <div class="status" style="position: absolute; inset: 0 0 auto; color: #fff">
+              <span>9:41</span>
+            </div>
+            <div
+              style="
+                position: absolute;
+                top: 52px;
+                left: 20px;
+                right: 20px;
+                display: flex;
+                justify-content: space-between;
+              "
+            >
+              <div class="icon-btn"><i data-lucide="arrow-left"></i></div>
+              <div class="icon-btn"><i data-lucide="flag"></i></div>
+            </div>
+          </div>
+          <div class="content" style="padding-top: 16px">
+            <div class="meta-line" style="margin-bottom: 6px">
+              <span><b style="color: var(--ink)">Altitude Jeunes</b></span
+              ><span class="verified"
+                ><i data-lucide="badge-check"></i>Publiée par un directeur</span
+              >
+            </div>
+            <div class="h1">Animateur·rice séjour montagne</div>
+            <div class="facts" style="grid-template-columns: repeat(3, 1fr)">
+              <div><i data-lucide="map-pin"></i><b>Savoie</b></div>
+              <div><i data-lucide="calendar"></i><b>5 – 26 juil.</b></div>
+              <div><i data-lucide="graduation-cap"></i><b>BAFA</b></div>
+            </div>
+            <div class="sub-title" style="margin-top: 4px">Le poste</div>
+            <p class="text">
+              Séjour de 3 semaines pour 40 jeunes de 8 à 14 ans : randonnées, grands jeux et
+              veillées. Équipe de 6 animateurs.
+            </p>
+            <div class="sub-title">Profil recherché</div>
+            <ul class="list">
+              <li>BAFA ou stagiaire BAFA</li>
+              <li>Expérience en séjour appréciée</li>
+            </ul>
+            <div class="notice">
+              <i data-lucide="info"></i
+              ><span
+                >La candidature se fait directement auprès de la structure, en dehors de
+                Ramdam.</span
+              >
+            </div>
+            <div class="btn primary">Contacter la structure<i data-lucide="external-link"></i></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 9. Publier une offre -->
+      <div class="slot" data-s="publier-offre">
+        <div class="label">9. Publier une offre <span>· directeur uniquement</span></div>
+        <div class="screen">
+          <div class="status">
+            <span>9:41</span><span class="sys"><b></b><i></i></span>
+          </div>
+          <div class="topbar">
+            <div class="icon-btn"><i data-lucide="x"></i></div>
+            <h2>Nouvelle offre</h2>
+          </div>
+          <div class="content">
+            <div class="field">
+              <label>Intitulé du poste</label>
+              <div class="input filled">Animateur·rice séjour montagne</div>
+            </div>
+            <div class="field">
+              <label>Structure</label>
+              <div class="input filled">Altitude Jeunes</div>
+            </div>
+            <div class="field">
+              <label>Type de structure</label>
+              <div class="segmented">
+                <span class="filter">ALSH</span><span class="filter on">Séjour</span
+                ><span class="filter">Périscolaire</span><span class="filter">Autre</span>
+              </div>
+            </div>
+            <div class="field">
+              <label>Région</label>
+              <div class="input filled">
+                <i data-lucide="map-pin"></i>Auvergne-Rhône-Alpes<i
+                  data-lucide="chevron-down"
+                  class="end"
+                ></i>
+              </div>
+            </div>
+            <div class="row">
+              <div class="field">
+                <label>Début</label>
+                <div class="input filled"><i data-lucide="calendar"></i>05/07/2027</div>
+              </div>
+              <div class="field">
+                <label>Fin</label>
+                <div class="input filled"><i data-lucide="calendar"></i>26/07/2027</div>
+              </div>
+            </div>
+            <div class="field">
+              <label>Description</label>
+              <div class="input area filled">Séjour de 3 semaines pour 40 jeunes…</div>
+            </div>
+            <div class="field">
+              <label>Contact pour candidater</label>
+              <div class="input filled">
+                <i data-lucide="link"></i>recrutement@altitude-jeunes.fr
+              </div>
+              <div class="hint">Email ou lien vers ta page de recrutement</div>
+            </div>
+            <div class="btn primary">Publier l'offre</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 10. Profil -->
+      <div class="slot" data-s="profil">
+        <div class="label">10. Profil et paramètres <span>· via l'avatar</span></div>
+        <div class="screen">
+          <div class="status">
+            <span>9:41</span><span class="sys"><b></b><i></i></span>
+          </div>
+          <div class="topbar">
+            <div class="icon-btn"><i data-lucide="arrow-left"></i></div>
+            <h2>Profil</h2>
+            <div class="icon-btn"><i data-lucide="pencil"></i></div>
+          </div>
+          <div class="content">
+            <div style="display: flex; gap: 14px; align-items: center">
+              <div class="avatar" style="width: 68px; height: 68px; font-size: 22px">LM</div>
+              <div>
+                <div style="font-family: var(--title); font-size: 21px; font-weight: 700">
+                  lea.anim
+                </div>
+                <div class="text">Animatrice · Montpellier</div>
+                <div class="text" style="color: var(--accent); font-weight: 600">
+                  Niveau 7 · 1 360 XP
+                </div>
+              </div>
+            </div>
+            <div class="stats3">
+              <div><b>4</b><small>activités</small></div>
+              <div><b>23</b><small>ajouts en Malle</small></div>
+              <div><b>112</b><small>j'aime reçus</small></div>
+            </div>
+            <div class="sub-title" style="margin-top: 0">Badges</div>
+            <div class="badges">
+              <div class="badge"><i data-lucide="feather"></i>Première activité</div>
+              <div class="badge"><i data-lucide="moon-star"></i>Reine des veillées</div>
+              <div class="badge"><i data-lucide="message-square-text"></i>10 commentaires</div>
+            </div>
+            <div class="sub-title">Compte</div>
+            <div class="settings">
+              <div>
+                <i data-lucide="download"></i>Exporter mes données<i
+                  data-lucide="chevron-right"
+                ></i>
+              </div>
+              <div>
+                <i data-lucide="shield-check"></i>Confidentialité et CGU<i
+                  data-lucide="chevron-right"
+                ></i>
+              </div>
+              <div>
+                <i data-lucide="log-out"></i>Se déconnecter<i data-lucide="chevron-right"></i>
+              </div>
+              <div>
+                <i data-lucide="trash-2"></i>Supprimer mon compte<i data-lucide="chevron-right"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const params = new URLSearchParams(location.search);
+      if (params.get('m') === 'wire') {
+        document.body.classList.add('wire');
+        document.getElementById('board-sub').textContent =
+          'Wireframes · 10 écrans · mobile 393 × 852';
+      }
+      const one = params.get('s');
+      if (one) {
+        document.body.classList.add('single');
+        document.querySelector(`.slot[data-s="${CSS.escape(one)}"]`)?.classList.add('on');
+      }
+      lucide.createIcons();
+    </script>
+  </body>
+</html>

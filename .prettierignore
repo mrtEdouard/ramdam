@@ -3,3 +3,6 @@ dist
 coverage
 .expo
 pnpm-lock.yaml
+docs/maquettes/vendor
+docs/maquettes/CREDITS.md
+ramdam-mockup.html

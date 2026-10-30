@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <title>Ramdam — Logo</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,800&family=DM+Sans:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        margin: 0;
+        box-sizing: border-box;
+      }
+      body {
+        width: 1200px;
+        font-family: 'DM Sans', sans-serif;
+        background: #ffffff;
+        color: #1c1a33;
+        padding: 56px;
+      }
+      h1 {
+        font-size: 14px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: #8c8a9e;
+        margin-bottom: 24px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+      }
+      .tile {
+        border-radius: 20px;
+        height: 280px;
+        display: grid;
+        place-items: center;
+        border: 1px solid #ece8e1;
+      }
+      .lockup {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+      }
+      .word {
+        font-family: 'Bricolage Grotesque', sans-serif;
+        font-weight: 800;
+        font-size: 88px;
+        letter-spacing: -4px;
+        line-height: 1;
+      }
+      .dark {
+        background: #1c1a33;
+        border-color: #1c1a33;
+        color: #fff8f0;
+      }
+      .cream {
+        background: #fff8f0;
+      }
+      .icons {
+        display: flex;
+        gap: 40px;
+        align-items: end;
+      }
+      .icons figure {
+        text-align: center;
+        font-size: 13px;
+        color: #8c8a9e;
+      }
+      .icons img {
+        display: block;
+        margin: 0 auto 10px;
+        border-radius: 22%;
+      }
+      .spec {
+        margin-top: 32px;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+      }
+      .sw {
+        border-radius: 14px;
+        height: 96px;
+        padding: 14px;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        font-size: 13px;
+        font-weight: 700;
+      }
+      .sw span {
+        font-weight: 400;
+        opacity: 0.8;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Ramdam · logo</h1>
+    <div class="grid">
+      <div class="tile">
+        <div class="lockup">
+          <svg width="92" height="92" viewBox="0 0 64 64">
+            <rect x="9" y="27" width="12" height="28" rx="6" fill="#1C1A33" />
+            <rect x="26" y="9" width="12" height="46" rx="6" fill="#FF5A3C" />
+            <rect x="43" y="33" width="12" height="22" rx="6" fill="#1C1A33" /></svg
+          ><span class="word">ramdam</span>
+        </div>
+      </div>
+      <div class="tile dark">
+        <div class="lockup">
+          <svg width="92" height="92" viewBox="0 0 64 64">
+            <rect x="9" y="27" width="12" height="28" rx="6" fill="#FFF8F0" />
+            <rect x="26" y="9" width="12" height="46" rx="6" fill="#FF5A3C" />
+            <rect x="43" y="33" width="12" height="22" rx="6" fill="#FFF8F0" /></svg
+          ><span class="word">ramdam</span>
+        </div>
+      </div>
+      <div class="tile cream">
+        <div class="icons">
+          <figure>
+            <img src="app-icon.svg" width="160" height="160" alt="" />Icône d'application
+          </figure>
+          <figure><img src="app-icon.svg" width="72" height="72" alt="" />72 px</figure>
+          <figure><img src="app-icon.svg" width="40" height="40" alt="" />40 px</figure>
+        </div>
+      </div>
+      <div class="tile">
+        <svg width="150" height="150" viewBox="0 0 64 64">
+          <rect x="9" y="27" width="12" height="28" rx="6" fill="#1C1A33" />
+          <rect x="26" y="9" width="12" height="46" rx="6" fill="#FF5A3C" />
+          <rect x="43" y="33" width="12" height="22" rx="6" fill="#1C1A33" />
+        </svg>
+      </div>
+    </div>
+    <div class="spec">
+      <div class="sw" style="background: #ff5a3c; color: #fff">Corail<span>#FF5A3C</span></div>
+      <div class="sw" style="background: #1c1a33; color: #fff">Encre<span>#1C1A33</span></div>
+      <div class="sw" style="background: #fff8f0; border: 1px solid #ece8e1">
+        Crème<span>#FFF8F0</span>
+      </div>
+      <div class="sw" style="background: #f4f1ec">
+        Bricolage Grotesque 800<span>Titres, logo · DM Sans pour le texte</span>
+      </div>
+    </div>
+  </body>
+</html>
