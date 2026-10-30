@@ -1,0 +1,19 @@
+{
+  "name": "ramdam",
+  "private": true,
+  "packageManager": "pnpm@12.16.1",
+  "scripts": {
+    "dev:api": "pnpm --filter @ramdam/api start:dev",
+    "dev:mobile": "pnpm --filter @ramdam/mobile start",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "test": "pnpm -r test",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down"
+  },
+  "devDependencies": {
+    "prettier": "^3.3.3"
+  }
+}

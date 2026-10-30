@@ -1,0 +1,6 @@
+packages:
+  - 'apps/*'
+  - 'packages/*'
+
+# Expo / React Native ne supporte pas bien les liens symboliques de pnpm
+nodeLinker: hoisted
