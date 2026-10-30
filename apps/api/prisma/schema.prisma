@@ -1,0 +1,256 @@
+// Généré par `prisma db pull` à partir de la base : ne pas modifier à la main.
+// Le schéma de référence reste database/01_schema.sql.
+
+generator client {
+  provider        = "prisma-client"
+  output          = "../src/generated/prisma"
+  previewFeatures = ["partialIndexes"]
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model aimer {
+  utilisateur_id String      @db.Uuid
+  fiche_id       String      @db.Uuid
+  aime_le        DateTime    @default(now()) @db.Timestamptz(6)
+  fiche          fiche       @relation(fields: [fiche_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  utilisateur    utilisateur @relation(fields: [utilisateur_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([utilisateur_id, fiche_id])
+  @@index([fiche_id], map: "aimer_fiche_idx")
+}
+
+model badge {
+  id           String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code         String         @unique @db.VarChar(40)
+  nom          String         @db.VarChar(60)
+  description  String         @db.VarChar(255)
+  icone        String         @db.VarChar(40)
+  badge_obtenu badge_obtenu[]
+}
+
+model badge_obtenu {
+  utilisateur_id String      @db.Uuid
+  badge_id       String      @db.Uuid
+  obtenu_le      DateTime    @default(now()) @db.Timestamptz(6)
+  badge          badge       @relation(fields: [badge_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  utilisateur    utilisateur @relation(fields: [utilisateur_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([utilisateur_id, badge_id])
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model commentaire {
+  id                String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  fiche_id          String             @db.Uuid
+  auteur_id         String             @db.Uuid
+  parent_id         String?            @db.Uuid
+  contenu           String             @db.VarChar(1000)
+  statut            statut_commentaire @default(VISIBLE)
+  cree_le           DateTime           @default(now()) @db.Timestamptz(6)
+  modifie_le        DateTime           @default(now()) @db.Timestamptz(6)
+  utilisateur       utilisateur        @relation(fields: [auteur_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  fiche             fiche              @relation(fields: [fiche_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  commentaire       commentaire?       @relation("commentaireTocommentaire", fields: [parent_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  other_commentaire commentaire[]      @relation("commentaireTocommentaire")
+  signalement       signalement[]
+
+  @@index([auteur_id], map: "commentaire_auteur_idx")
+  @@index([fiche_id, cree_le], map: "commentaire_fiche_idx")
+  @@index([parent_id], map: "commentaire_parent_idx")
+}
+
+model favori {
+  utilisateur_id String      @db.Uuid
+  fiche_id       String      @db.Uuid
+  ajoute_le      DateTime    @default(now()) @db.Timestamptz(6)
+  fiche          fiche       @relation(fields: [fiche_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  utilisateur    utilisateur @relation(fields: [utilisateur_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([utilisateur_id, fiche_id])
+  @@index([fiche_id], map: "favori_fiche_idx")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model fiche {
+  id                  String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  auteur_id           String        @db.Uuid
+  titre               String        @db.VarChar(120)
+  type                type_fiche
+  age_min             Int           @db.SmallInt
+  age_max             Int           @db.SmallInt
+  duree_minutes       Int           @db.SmallInt
+  nb_participants_min Int?          @db.SmallInt
+  nb_participants_max Int?          @db.SmallInt
+  objectifs           String?
+  materiel            String?
+  deroulement         String
+  image_url           String?
+  statut              statut_fiche  @default(BROUILLON)
+  publiee_le          DateTime?     @db.Timestamptz(6)
+  cree_le             DateTime      @default(now()) @db.Timestamptz(6)
+  modifie_le          DateTime      @default(now()) @db.Timestamptz(6)
+  aimer               aimer[]
+  commentaire         commentaire[]
+  favori              favori[]
+  utilisateur         utilisateur   @relation(fields: [auteur_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  signalement         signalement[]
+
+  @@index([auteur_id], map: "fiche_auteur_idx")
+  @@index([type, publiee_le(sort: Desc)], map: "fiche_fil_idx", where: raw("(statut = 'PUBLIEE'::statut_fiche)"))
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model historique_xp {
+  id             BigInt      @id @default(autoincrement())
+  utilisateur_id String      @db.Uuid
+  action         action_xp
+  points         Int         @db.SmallInt
+  source_id      String      @db.Uuid
+  declencheur_id String      @db.Uuid
+  gagne_le       DateTime    @default(now()) @db.Timestamptz(6)
+  utilisateur    utilisateur @relation(fields: [utilisateur_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([action, source_id, declencheur_id], map: "historique_xp_unique_gain")
+  @@index([utilisateur_id, gagne_le(sort: Desc)], map: "historique_xp_user_idx")
+}
+
+model jeton_rafraichissement {
+  id             String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  utilisateur_id String      @db.Uuid
+  jeton_hash     String      @unique
+  expire_le      DateTime    @db.Timestamptz(6)
+  revoque_le     DateTime?   @db.Timestamptz(6)
+  cree_le        DateTime    @default(now()) @db.Timestamptz(6)
+  utilisateur    utilisateur @relation(fields: [utilisateur_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([utilisateur_id], map: "jeton_utilisateur_idx")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model offre {
+  id              String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  directeur_id    String         @db.Uuid
+  intitule        String         @db.VarChar(120)
+  structure       String         @db.VarChar(120)
+  type_structure  type_structure
+  description     String
+  region          String         @db.VarChar(60)
+  date_debut      DateTime       @db.Date
+  date_fin        DateTime       @db.Date
+  diplome_requis  String?        @db.VarChar(60)
+  contact_externe String         @db.VarChar(255)
+  statut          statut_offre   @default(OUVERTE)
+  cree_le         DateTime       @default(now()) @db.Timestamptz(6)
+  modifie_le      DateTime       @default(now()) @db.Timestamptz(6)
+  utilisateur     utilisateur    @relation(fields: [directeur_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  signalement     signalement[]
+
+  @@index([directeur_id], map: "offre_directeur_idx")
+  @@index([region, date_debut], map: "offre_liste_idx", where: raw("(statut = 'OUVERTE'::statut_offre)"))
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model signalement {
+  id                                             String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  auteur_id                                      String?            @db.Uuid
+  admin_id                                       String?            @db.Uuid
+  fiche_id                                       String?            @db.Uuid
+  commentaire_id                                 String?            @db.Uuid
+  offre_id                                       String?            @db.Uuid
+  motif                                          String             @db.VarChar(500)
+  statut                                         statut_signalement @default(EN_ATTENTE)
+  cree_le                                        DateTime           @default(now()) @db.Timestamptz(6)
+  traite_le                                      DateTime?          @db.Timestamptz(6)
+  utilisateur_signalement_admin_idToutilisateur  utilisateur?       @relation("signalement_admin_idToutilisateur", fields: [admin_id], references: [id], onUpdate: NoAction)
+  utilisateur_signalement_auteur_idToutilisateur utilisateur?       @relation("signalement_auteur_idToutilisateur", fields: [auteur_id], references: [id], onUpdate: NoAction)
+  commentaire                                    commentaire?       @relation(fields: [commentaire_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  fiche                                          fiche?             @relation(fields: [fiche_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  offre                                          offre?             @relation(fields: [offre_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([cree_le], map: "signalement_attente_idx", where: raw("(statut = 'EN_ATTENTE'::statut_signalement)"))
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model utilisateur {
+  id                                             String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email                                          String                   @unique @db.Citext
+  mot_de_passe_hash                              String
+  pseudo                                         String                   @unique @db.VarChar(30)
+  bio                                            String?                  @db.VarChar(300)
+  avatar_url                                     String?
+  role                                           role_utilisateur         @default(ANIMATEUR)
+  xp                                             Int                      @default(0)
+  statut                                         statut_compte            @default(ACTIF)
+  cgu_acceptees_le                               DateTime                 @db.Timestamptz(6)
+  cree_le                                        DateTime                 @default(now()) @db.Timestamptz(6)
+  modifie_le                                     DateTime                 @default(now()) @db.Timestamptz(6)
+  aimer                                          aimer[]
+  badge_obtenu                                   badge_obtenu[]
+  commentaire                                    commentaire[]
+  favori                                         favori[]
+  fiche                                          fiche[]
+  historique_xp                                  historique_xp[]
+  jeton_rafraichissement                         jeton_rafraichissement[]
+  offre                                          offre[]
+  signalement_signalement_admin_idToutilisateur  signalement[]            @relation("signalement_admin_idToutilisateur")
+  signalement_signalement_auteur_idToutilisateur signalement[]            @relation("signalement_auteur_idToutilisateur")
+}
+
+enum action_xp {
+  FICHE_PUBLIEE
+  FICHE_EN_MALLE
+  FICHE_AIMEE
+  COMMENTAIRE_PUBLIE
+}
+
+enum role_utilisateur {
+  ANIMATEUR
+  DIRECTEUR
+  ADMIN
+}
+
+enum statut_commentaire {
+  VISIBLE
+  MASQUE
+}
+
+enum statut_compte {
+  ACTIF
+  SUSPENDU
+}
+
+enum statut_fiche {
+  BROUILLON
+  PUBLIEE
+  MASQUEE
+}
+
+enum statut_offre {
+  OUVERTE
+  CLOTUREE
+}
+
+enum statut_signalement {
+  EN_ATTENTE
+  TRAITE
+  IGNORE
+}
+
+enum type_fiche {
+  JEU
+  GRAND_JEU
+  VEILLEE
+  MANUEL
+  SPORTIF
+  AUTRE
+}
+
+enum type_structure {
+  ALSH
+  SEJOUR
+  PERISCOLAIRE
+  AUTRE
+}

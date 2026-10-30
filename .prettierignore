@@ -6,3 +6,5 @@ pnpm-lock.yaml
 docs/maquettes/vendor
 docs/maquettes/CREDITS.md
 ramdam-mockup.html
+apps/api/src/generated
+apps/api/prisma/schema.prisma

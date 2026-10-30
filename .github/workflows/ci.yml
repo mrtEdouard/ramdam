@@ -16,6 +16,8 @@ jobs:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      # Compile les schémas Zod partagés et génère le client Prisma (fichiers non versionnés)
+      - run: pnpm generate
       - run: pnpm format:check
       - run: pnpm --filter @ramdam/api lint
       - run: pnpm --filter @ramdam/api test
@@ -31,4 +33,6 @@ jobs:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      # Compile les schémas Zod partagés et génère le client Prisma (fichiers non versionnés)
+      - run: pnpm generate
       - run: pnpm --filter @ramdam/mobile typecheck
