@@ -1,8 +1,13 @@
 # Crédits photos
 
-Photos issues de Wikimedia Commons, sous licence libre. Le crédit est affiché sur l'image dans l'app.
+Photos issues de Wikimedia Commons, sous licence libre. Elles illustrent les écrans de connexion
+et les données de démonstration, en attendant les vraies images envoyées par les utilisateurs.
 
-| Fichier     | Œuvre                                                                                  | Auteur         | Licence      |
-| ----------- | -------------------------------------------------------------------------------------- | -------------- | ------------ |
-| veillee.jpg | [Children by fire.jpg](https://commons.wikimedia.org/wiki/File:Children_by_fire.jpg)   | Smiley.toerist | CC BY-SA 3.0 |
-| fresque.jpg | [Children painting.jpg](https://commons.wikimedia.org/wiki/File:Children_painting.jpg) | Yann           | CC BY-SA 4.0 |
+| Fichier     | Œuvre                                                                                                                                                                                                                                                                              | Auteur                     | Licence       |
+| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------- | ------------- |
+| veillee.jpg | [Children by fire.jpg](https://commons.wikimedia.org/wiki/File:Children_by_fire.jpg)                                                                                                                                                                                               | Smiley.toerist             | CC BY-SA 3.0  |
+| foret.jpg   | [Children's nature walk in Discovery Park, Seattle, 1978.jpg](https://commons.wikimedia.org/wiki/File:Children%27s_nature_walk_in_Discovery_Park,_Seattle,_1978.jpg)                                                                                                               | Seattle Municipal Archives | CC BY 2.0     |
+| nature.jpg  | [BLM Eastern States Connects America’s Heroes with Public Lands (14522750845).jpg](<https://commons.wikimedia.org/wiki/File:BLM_Eastern_States_Connects_America%E2%80%99s_Heroes_with_Public_Lands_(14522750845).jpg>)                                                             | Bureau of Land Management  | Public domain |
+| enquete.jpg | [Magnifying glass with focus on paper.png](https://commons.wikimedia.org/wiki/File:Magnifying_glass_with_focus_on_paper.png)                                                                                                                                                       | Niabot                     | CC BY-SA 3.0  |
+| fresque.jpg | [Children painting.jpg](https://commons.wikimedia.org/wiki/File:Children_painting.jpg)                                                                                                                                                                                             | Yann (talk)                | CC BY-SA 4.0  |
+| theatre.jpg | [Malo pozorište "Duško Radović", Beograd, "Pad sa devetog meteora", 2010, foto Đorđe Tomić 09.jpg](https://commons.wikimedia.org/wiki/File:Malo_pozori%C5%A1te_%22Du%C5%A1ko_Radovi%C4%87%22,_Beograd,_%22Pad_sa_devetog_meteora%22,_2010,_foto_%C4%90or%C4%91e_Tomi%C4%87_09.jpg) | Đorđe Tomić                | CC BY-SA 4.0  |
