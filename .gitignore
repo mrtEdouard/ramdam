@@ -19,3 +19,9 @@ android/
 
 # Sauvegardes de la base
 sauvegardes/
+
+# Client Prisma, régénéré par `prisma generate`
+apps/api/src/generated/
+
+# Cache de compilation TypeScript
+*.tsbuildinfo

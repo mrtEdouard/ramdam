@@ -4,3 +4,9 @@ packages:
 
 # Expo / React Native ne supporte pas bien les liens symboliques de pnpm
 nodeLinker: hoisted
+
+# Paquets autorisés à exécuter un script d'installation (compilation native)
+allowBuilds:
+  argon2: true
+  prisma: true
+  '@prisma/engines': true

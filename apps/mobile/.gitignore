@@ -40,3 +40,6 @@ example
 # generated native folders
 /ios
 /android
+
+# Généré par Expo à chaque démarrage
+expo-env.d.ts
