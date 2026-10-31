@@ -9,9 +9,14 @@ export default function NouvelleFiche() {
 
   async function creer(dto: CreerFicheDto) {
     const fiche = await appeler<FicheDetail>('POST', '/fiches', session!.jeton, dto);
-    // replace : le bouton retour ne ramène pas au formulaire déjà envoyé.
-    router.replace({ pathname: '/fiches/[id]', params: { id: fiche.id } });
+    return fiche.id;
   }
 
-  return <FormulaireFiche envoyer={creer} />;
+  return (
+    <FormulaireFiche
+      enregistrer={creer}
+      // replace : le bouton retour ne ramène pas au formulaire déjà envoyé.
+      termine={(id) => router.replace({ pathname: '/fiches/[id]', params: { id } })}
+    />
+  );
 }

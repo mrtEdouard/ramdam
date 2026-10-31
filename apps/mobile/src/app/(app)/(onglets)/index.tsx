@@ -1,4 +1,4 @@
-import type { FicheResume, PageDeFiches, TypeFiche } from '@ramdam/shared';
+import type { FicheResume, OffreResume, PageDeFiches, TypeFiche } from '@ramdam/shared';
 import { Link } from 'expo-router';
 import {
   Dices,
@@ -20,7 +20,6 @@ import { LigneOffre } from '@/components/ligne-offre';
 import { Logo } from '@/components/logo';
 import { MessageErreur } from '@/components/message-erreur';
 import { couleurs, polices } from '@/constants/theme';
-import { offresRecentes } from '@/donnees/demo';
 import { useRequete } from '@/hooks/use-requete';
 import { useSession } from '@/session/session-context';
 
@@ -37,6 +36,7 @@ export default function Accueil() {
   const { session } = useSession();
   const aLaUne = useRequete<FicheResume | null>('/fiches/a-la-une');
   const recentes = useRequete<PageDeFiches>('/fiches?parPage=9');
+  const offres = useRequete<OffreResume[]>('/offres?nombre=3');
   if (!session) {
     return null;
   }
@@ -45,7 +45,7 @@ export default function Accueil() {
   const autresFiches = (recentes.donnees?.fiches ?? []).filter(
     (fiche) => fiche.id !== aLaUne.donnees?.id,
   );
-  const erreur = aLaUne.erreur ?? recentes.erreur;
+  const erreur = aLaUne.erreur ?? recentes.erreur ?? offres.erreur;
 
   return (
     <SafeAreaView style={styles.ecran} edges={['top']}>
@@ -125,14 +125,18 @@ export default function Accueil() {
         )}
 
         <EnTeteSection titre="Offres récentes publiées" lien="/offres" />
-        <View style={styles.panneauOffres}>
-          {offresRecentes.map((offre, position) => (
-            <Fragment key={offre.id}>
-              {position > 0 && <View style={styles.separateur} />}
-              <LigneOffre offre={offre} />
-            </Fragment>
-          ))}
-        </View>
+        {offres.donnees?.length === 0 ? (
+          <Text style={styles.vide}>Aucune offre ouverte pour l'instant.</Text>
+        ) : (
+          <View style={styles.panneauOffres}>
+            {offres.donnees?.map((offre, position) => (
+              <Fragment key={offre.id}>
+                {position > 0 && <View style={styles.separateur} />}
+                <LigneOffre offre={offre} />
+              </Fragment>
+            ))}
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );

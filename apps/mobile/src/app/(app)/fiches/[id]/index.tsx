@@ -1,9 +1,17 @@
-import { libellesTypeFiche, type FicheDetail } from '@ramdam/shared';
+import { libelleType, type FicheDetail } from '@ramdam/shared';
 import { Image } from 'expo-image';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Clock, Heart, Smile, Users } from 'lucide-react-native';
+import { Clock, Heart, Smile, Users, X } from 'lucide-react-native';
 import { useState, type ReactNode } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Modal,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { Avatar } from '@/components/avatar';
 import { Bouton } from '@/components/bouton';
 import { MessageErreur } from '@/components/message-erreur';
@@ -12,7 +20,7 @@ import { useRequete } from '@/hooks/use-requete';
 import { appeler, ErreurApi } from '@/lib/api';
 import { confirmer } from '@/lib/confirmer';
 import { depuis, duree } from '@/lib/format';
-import { imageDeFiche } from '@/lib/images';
+import { adresseImage, imageDeFiche } from '@/lib/images';
 import { useSession } from '@/session/session-context';
 
 export default function DetailFiche() {
@@ -21,6 +29,8 @@ export default function DetailFiche() {
   const { donnees: fiche, erreur, recharger } = useRequete<FicheDetail>(`/fiches/${id}`);
   const [action, setAction] = useState<'publier' | 'supprimer' | null>(null);
   const [erreurAction, setErreurAction] = useState<string | null>(null);
+  // Photo de la galerie affichée en grand, ou null.
+  const [photoOuverte, setPhotoOuverte] = useState<string | null>(null);
 
   if (erreur) {
     return (
@@ -93,7 +103,7 @@ export default function DetailFiche() {
 
       <View style={styles.contenu}>
         <View style={styles.ligneType}>
-          <Text style={styles.type}>{libellesTypeFiche[fiche.type]}</Text>
+          <Text style={styles.type}>{libelleType(fiche)}</Text>
           {fiche.statut === 'BROUILLON' && <Text style={styles.brouillon}>Brouillon</Text>}
           {fiche.statut === 'MASQUEE' && (
             <Text style={styles.masquee}>Masquée par la modération</Text>
@@ -139,9 +149,44 @@ export default function DetailFiche() {
           )}
         </View>
 
-        {fiche.objectifs && <Section titre="Objectifs" texte={fiche.objectifs} />}
-        {fiche.materiel && <Section titre="Matériel" texte={fiche.materiel} />}
-        <Section titre="Déroulement" texte={fiche.deroulement} />
+        {fiche.objectifs.length > 0 && (
+          <Section titre="Objectifs">
+            <Bulles mots={fiche.objectifs} style={styles.bulleObjectif} />
+          </Section>
+        )}
+        {fiche.materiel.length > 0 && (
+          <Section titre="Matériel">
+            <Bulles mots={fiche.materiel} style={styles.bulleMateriel} />
+          </Section>
+        )}
+        <Section titre="Déroulement">
+          <Text style={styles.texte}>{fiche.deroulement}</Text>
+        </Section>
+
+        {fiche.photos.length > 0 && (
+          <Section titre={`Galerie (${fiche.photos.length})`}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.galerie}
+            >
+              {fiche.photos.map((photo, position) => (
+                <Pressable
+                  key={photo.id}
+                  onPress={() => setPhotoOuverte(photo.url)}
+                  accessibilityRole="imagebutton"
+                  accessibilityLabel={`Agrandir la photo ${position + 1}`}
+                >
+                  <Image
+                    source={adresseImage(photo.url)}
+                    style={styles.vignette}
+                    contentFit="cover"
+                  />
+                </Pressable>
+              ))}
+            </ScrollView>
+          </Section>
+        )}
 
         {/* Actions réservées à l'auteur (RG-06). L'API vérifie aussi : ce n'est qu'un affichage. */}
         {fiche.estAuteur && (
@@ -170,7 +215,44 @@ export default function DetailFiche() {
           </View>
         )}
       </View>
+
+      {/* Photo de la galerie en plein écran ; un appui n'importe où la referme. */}
+      <Modal
+        visible={photoOuverte !== null}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setPhotoOuverte(null)}
+      >
+        <Pressable
+          style={styles.plein}
+          onPress={() => setPhotoOuverte(null)}
+          accessibilityLabel="Fermer la photo"
+        >
+          {photoOuverte && (
+            <Image
+              source={adresseImage(photoOuverte)}
+              style={styles.photoPleine}
+              contentFit="contain"
+            />
+          )}
+          <View style={styles.fermer}>
+            <X size={22} color={couleurs.surface} />
+          </View>
+        </Pressable>
+      </Modal>
     </ScrollView>
+  );
+}
+
+function Bulles({ mots, style }: { mots: string[]; style: object }) {
+  return (
+    <View style={styles.bulles}>
+      {mots.map((mot) => (
+        <Text key={mot} style={[styles.bulle, style]}>
+          {mot}
+        </Text>
+      ))}
+    </View>
   );
 }
 
@@ -184,13 +266,13 @@ function Info({ icone, libelle, valeur }: { icone: ReactNode; libelle: string; v
   );
 }
 
-function Section({ titre, texte }: { titre: string; texte: string }) {
+function Section({ titre, children }: { titre: string; children: ReactNode }) {
   return (
     <View style={styles.section}>
       <Text style={styles.titreSection} accessibilityRole="header">
         {titre}
       </Text>
-      <Text style={styles.texte}>{texte}</Text>
+      {children}
     </View>
   );
 }
@@ -268,4 +350,36 @@ const styles = StyleSheet.create({
   },
   texte: { fontFamily: polices.texte, fontSize: 16, lineHeight: 24, color: couleurs.encre },
   actions: { gap: 10, marginTop: 8 },
+  bulles: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  bulle: {
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 999,
+    overflow: 'hidden',
+    fontFamily: polices.texteMoyen,
+    fontSize: 14,
+    color: couleurs.encre,
+  },
+  bulleMateriel: { borderWidth: 1, borderColor: couleurs.trait, backgroundColor: couleurs.surface },
+  bulleObjectif: { backgroundColor: couleurs.corailDoux },
+  galerie: { gap: 10 },
+  vignette: { width: 120, height: 120, borderRadius: 16, backgroundColor: couleurs.trait },
+  plein: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(16, 14, 25, 0.95)',
+  },
+  photoPleine: { width: '100%', height: '80%' },
+  fermer: {
+    position: 'absolute',
+    top: 48,
+    right: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+  },
 });

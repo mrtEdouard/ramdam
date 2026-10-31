@@ -1,4 +1,4 @@
-import { libellesTypeFiche, type FicheResume } from '@ramdam/shared';
+import { libelleType, type FicheResume } from '@ramdam/shared';
 import { Image } from 'expo-image';
 import { Link } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
@@ -14,7 +14,7 @@ export function CarteFiche({ fiche }: { fiche: FicheResume }) {
     <Link href={{ pathname: '/fiches/[id]', params: { id: fiche.id } }} asChild>
       <Pressable
         style={styles.carte}
-        accessibilityLabel={`${fiche.titre}, ${libellesTypeFiche[fiche.type]}, ${fiche.ageMin} à ${fiche.ageMax} ans, par ${fiche.auteur}`}
+        accessibilityLabel={`${fiche.titre}, ${libelleType(fiche)}, ${fiche.ageMin} à ${fiche.ageMax} ans, par ${fiche.auteur}`}
       >
         <View>
           <Image
@@ -23,7 +23,7 @@ export function CarteFiche({ fiche }: { fiche: FicheResume }) {
             contentFit="cover"
             transition={150}
           />
-          <Text style={styles.etiquette}>{libellesTypeFiche[fiche.type]}</Text>
+          <Text style={styles.etiquette}>{libelleType(fiche)}</Text>
         </View>
         <Text style={styles.titre} numberOfLines={2}>
           {fiche.titre}

@@ -30,11 +30,20 @@ export default function ModifierFiche() {
 
   async function enregistrer(dto: CreerFicheDto) {
     await appeler('PATCH', `/fiches/${id}`, session!.jeton, dto);
-    // Retour au détail, qui se recharge en revenant à l'écran.
-    router.back();
+    return id;
   }
 
-  return <FormulaireFiche fiche={fiche} envoyer={enregistrer} />;
+  // Retour au détail, qui se recharge en revenant à l'écran. Ouvert par un lien direct,
+  // il n'y a pas d'écran précédent : on remplace le formulaire par le détail.
+  function termine() {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace({ pathname: '/fiches/[id]', params: { id } });
+    }
+  }
+
+  return <FormulaireFiche fiche={fiche} enregistrer={enregistrer} termine={termine} />;
 }
 
 const styles = StyleSheet.create({

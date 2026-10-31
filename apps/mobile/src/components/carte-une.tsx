@@ -1,4 +1,4 @@
-import { libellesTypeFiche, type FicheResume } from '@ramdam/shared';
+import { libelleType, type FicheResume } from '@ramdam/shared';
 import { Image } from 'expo-image';
 import { Link } from 'expo-router';
 import { Clock, Heart, Smile } from 'lucide-react-native';
@@ -14,7 +14,7 @@ export function CarteUne({ fiche }: { fiche: FicheResume }) {
     <Link href={{ pathname: '/fiches/[id]', params: { id: fiche.id } }} asChild>
       <Pressable
         style={styles.carte}
-        accessibilityLabel={`À la une : ${fiche.titre}, ${libellesTypeFiche[fiche.type]}, par ${fiche.auteur}, ${fiche.aimes} j'aime`}
+        accessibilityLabel={`À la une : ${fiche.titre}, ${libelleType(fiche)}, par ${fiche.auteur}, ${fiche.aimes} j'aime`}
       >
         <Image
           source={imageDeFiche(fiche)}
@@ -23,7 +23,7 @@ export function CarteUne({ fiche }: { fiche: FicheResume }) {
           transition={150}
         />
         <View style={styles.encart}>
-          <Text style={styles.type}>{libellesTypeFiche[fiche.type]}</Text>
+          <Text style={styles.type}>{libelleType(fiche)}</Text>
           <Text style={styles.titre} numberOfLines={2}>
             {fiche.titre}
           </Text>

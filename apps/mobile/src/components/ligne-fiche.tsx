@@ -1,4 +1,4 @@
-import { libellesTypeFiche, type FicheResume } from '@ramdam/shared';
+import { libelleType, type FicheResume } from '@ramdam/shared';
 import { Image } from 'expo-image';
 import { Link } from 'expo-router';
 import { Heart } from 'lucide-react-native';
@@ -28,7 +28,7 @@ export function LigneFiche({
     <Link href={{ pathname: '/fiches/[id]', params: { id: fiche.id } }} asChild>
       <Pressable
         style={styles.ligne}
-        accessibilityLabel={`${fiche.titre}, ${libellesTypeFiche[fiche.type]}, ${fiche.ageMin} à ${fiche.ageMax} ans, par ${fiche.auteur}${statut ? `, ${statut.libelle}` : ''}`}
+        accessibilityLabel={`${fiche.titre}, ${libelleType(fiche)}, ${fiche.ageMin} à ${fiche.ageMax} ans, par ${fiche.auteur}${statut ? `, ${statut.libelle}` : ''}`}
       >
         <Image
           source={imageDeFiche(fiche)}
@@ -38,7 +38,7 @@ export function LigneFiche({
         />
         <View style={styles.textes}>
           <View style={styles.entete}>
-            <Text style={styles.type}>{libellesTypeFiche[fiche.type]}</Text>
+            <Text style={styles.type}>{libelleType(fiche)}</Text>
             {statut && (
               <Text style={[styles.statut, { backgroundColor: statut.fond, color: statut.texte }]}>
                 {statut.libelle}

@@ -1,4 +1,7 @@
-const URL_API = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000';
+import type { ImagePickerAsset } from 'expo-image-picker';
+import { Platform } from 'react-native';
+
+export const URL_API = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000';
 
 // Erreur renvoyée par l'API, avec le message à afficher et les erreurs par champ s'il y en a.
 export class ErreurApi extends Error {
@@ -44,6 +47,34 @@ export function appeler<T>(
       ...(corps !== undefined && { 'Content-Type': 'application/json' }),
     },
     body: corps !== undefined ? JSON.stringify(corps) : undefined,
+  });
+}
+
+// Envoi d'une photo choisie dans la galerie du téléphone (multipart/form-data, champ « image »).
+export async function envoyerPhoto<T>(
+  methode: 'POST' | 'PUT',
+  chemin: string,
+  jeton: string,
+  photo: ImagePickerAsset,
+): Promise<T> {
+  const formulaire = new FormData();
+  const nom = photo.fileName ?? 'photo.jpg';
+  if (Platform.OS === 'web') {
+    // Sur le web, le sélecteur donne un vrai fichier du navigateur.
+    formulaire.append('image', photo.file ?? (await (await fetch(photo.uri)).blob()), nom);
+  } else {
+    // Sur téléphone, React Native lit le fichier à partir de son adresse locale.
+    formulaire.append('image', {
+      uri: photo.uri,
+      name: nom,
+      type: photo.mimeType ?? 'image/jpeg',
+    } as unknown as Blob);
+  }
+  // Pas de Content-Type : fetch le calcule lui-même, avec la frontière entre les parties.
+  return requete<T>(chemin, {
+    method: methode,
+    headers: { Authorization: `Bearer ${jeton}` },
+    body: formulaire,
   });
 }
 
