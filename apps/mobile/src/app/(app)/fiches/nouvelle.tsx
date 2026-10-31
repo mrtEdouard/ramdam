@@ -1,12 +1,17 @@
-import { PencilLine } from 'lucide-react-native';
-import { PageAVenir } from '@/components/page-a-venir';
+import type { CreerFicheDto, FicheDetail } from '@ramdam/shared';
+import { router } from 'expo-router';
+import { FormulaireFiche } from '@/components/formulaire-fiche';
+import { appeler } from '@/lib/api';
+import { useSession } from '@/session/session-context';
 
 export default function NouvelleFiche() {
-  return (
-    <PageAVenir
-      icone={PencilLine}
-      titre="Nouvelle fiche"
-      description="Le formulaire pour décrire une activité : type, âges, durée, matériel et déroulement."
-    />
-  );
+  const { session } = useSession();
+
+  async function creer(dto: CreerFicheDto) {
+    const fiche = await appeler<FicheDetail>('POST', '/fiches', session!.jeton, dto);
+    // replace : le bouton retour ne ramène pas au formulaire déjà envoyé.
+    router.replace({ pathname: '/fiches/[id]', params: { id: fiche.id } });
+  }
+
+  return <FormulaireFiche envoyer={creer} />;
 }

@@ -15,7 +15,7 @@ import { useEcranLarge } from '@/hooks/use-ecran-large';
 
 type Props = TextInputProps & {
   libelle: string;
-  icone: LucideIcon;
+  icone?: LucideIcon;
   erreur?: string;
   // Contenu affiché sous le champ à la place du message d'erreur : il gère lui-même l'erreur.
   aide?: ReactNode;
@@ -44,15 +44,22 @@ export function ChampTexte({
     <View style={[styles.champ, ecranLarge && styles.champCompact]}>
       <Text style={styles.libelle}>{libelle}</Text>
       <View
-        style={[styles.boite, ecranLarge && styles.boiteCompacte, { borderColor: couleurBord }]}
+        style={[
+          styles.boite,
+          ecranLarge && styles.boiteCompacte,
+          props.multiline && styles.boiteMultiligne,
+          { borderColor: couleurBord },
+        ]}
       >
         {/* flexShrink: 0 : dans un champ étroit, c'est la saisie qui rétrécit, jamais l'icône. */}
-        <View style={styles.icone}>
-          <Icone size={20} color={couleurs.encre3} strokeWidth={1.75} />
-        </View>
+        {Icone && (
+          <View style={styles.icone}>
+            <Icone size={20} color={couleurs.encre3} strokeWidth={1.75} />
+          </View>
+        )}
         <TextInput
           ref={ref}
-          style={styles.saisie}
+          style={[styles.saisie, props.multiline && styles.saisieMultiligne]}
           placeholderTextColor={couleurs.encre3}
           accessibilityLabel={libelle}
           secureTextEntry={motDePasse && !visible}
@@ -120,6 +127,9 @@ const styles = StyleSheet.create({
     outlineWidth: 0,
   },
   boiteCompacte: { minHeight: 46 },
+  // Champ de plusieurs lignes (déroulement d'une fiche) : le texte part du haut.
+  boiteMultiligne: { minHeight: 120, alignItems: 'flex-start', paddingVertical: 12 },
+  saisieMultiligne: { minHeight: 96, textAlignVertical: 'top' },
   ligneErreur: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   erreur: { flex: 1, fontFamily: polices.texteMoyen, fontSize: 14, color: couleurs.erreur },
 });

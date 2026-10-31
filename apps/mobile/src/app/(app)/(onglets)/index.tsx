@@ -1,3 +1,4 @@
+import type { FicheResume, PageDeFiches, TypeFiche } from '@ramdam/shared';
 import { Link } from 'expo-router';
 import {
   Dices,
@@ -10,15 +11,17 @@ import {
   type LucideIcon,
 } from 'lucide-react-native';
 import { Fragment } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Avatar } from '@/components/avatar';
 import { CarteFiche } from '@/components/carte-fiche';
 import { CarteUne } from '@/components/carte-une';
 import { LigneOffre } from '@/components/ligne-offre';
 import { Logo } from '@/components/logo';
+import { MessageErreur } from '@/components/message-erreur';
 import { couleurs, polices } from '@/constants/theme';
-import { fichesRecentes, offresRecentes, type FicheResume, type TypeFiche } from '@/donnees/demo';
+import { offresRecentes } from '@/donnees/demo';
+import { useRequete } from '@/hooks/use-requete';
 import { useSession } from '@/session/session-context';
 
 const categories: { type: TypeFiche; libelle: string; icone: LucideIcon }[] = [
@@ -32,12 +35,17 @@ const categories: { type: TypeFiche; libelle: string; icone: LucideIcon }[] = [
 
 export default function Accueil() {
   const { session } = useSession();
+  const aLaUne = useRequete<FicheResume | null>('/fiches/a-la-une');
+  const recentes = useRequete<PageDeFiches>('/fiches?parPage=9');
   if (!session) {
     return null;
   }
   const { pseudo } = session.utilisateur;
-  const aLaUne = ficheALaUne(fichesRecentes);
-  const autresFiches = fichesRecentes.filter((fiche) => fiche.id !== aLaUne.id);
+  // La fiche à la une n'est pas répétée dans le carrousel.
+  const autresFiches = (recentes.donnees?.fiches ?? []).filter(
+    (fiche) => fiche.id !== aLaUne.donnees?.id,
+  );
+  const erreur = aLaUne.erreur ?? recentes.erreur;
 
   return (
     <SafeAreaView style={styles.ecran} edges={['top']}>
@@ -85,20 +93,36 @@ export default function Accueil() {
           ))}
         </ScrollView>
 
-        <EnTeteSection titre="À la une" sousTitre="L'activité la plus aimée de la semaine" />
-        <CarteUne fiche={aLaUne} />
+        {erreur && (
+          <View style={styles.espace}>
+            <MessageErreur message={erreur} />
+          </View>
+        )}
+
+        {aLaUne.donnees && (
+          <>
+            <EnTeteSection titre="À la une" sousTitre="L'activité la plus aimée de la semaine" />
+            <CarteUne fiche={aLaUne.donnees} />
+          </>
+        )}
 
         <EnTeteSection titre="Activités récentes publiées" lien="/activites" />
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.horsMarge}
-          contentContainerStyle={styles.carrousel}
-        >
-          {autresFiches.map((fiche) => (
-            <CarteFiche key={fiche.id} fiche={fiche} />
-          ))}
-        </ScrollView>
+        {recentes.chargement && !recentes.donnees ? (
+          <ActivityIndicator color={couleurs.corail} style={styles.chargement} />
+        ) : autresFiches.length > 0 ? (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.horsMarge}
+            contentContainerStyle={styles.carrousel}
+          >
+            {autresFiches.map((fiche) => (
+              <CarteFiche key={fiche.id} fiche={fiche} />
+            ))}
+          </ScrollView>
+        ) : (
+          <Text style={styles.vide}>Aucune autre activité publiée pour l'instant.</Text>
+        )}
 
         <EnTeteSection titre="Offres récentes publiées" lien="/offres" />
         <View style={styles.panneauOffres}>
@@ -112,16 +136,6 @@ export default function Accueil() {
       </ScrollView>
     </SafeAreaView>
   );
-}
-
-// La fiche qui a reçu le plus de « j'aime » ces 7 derniers jours ; à égalité, la plus récente.
-// Sans aucun « j'aime » cette semaine, c'est simplement la plus récente qui est à la une.
-// Ce calcul sera fait par l'API (GET /fiches/a-la-une) quand elle existera.
-function ficheALaUne(fiches: FicheResume[]) {
-  return [...fiches].sort(
-    (a, b) =>
-      b.aimeeCetteSemaine - a.aimeeCetteSemaine || b.publieeLe.getTime() - a.publieeLe.getTime(),
-  )[0];
 }
 
 type PropsEnTete = { titre: string; sousTitre?: string; lien?: '/activites' | '/offres' };
@@ -217,6 +231,9 @@ const styles = StyleSheet.create({
   },
   toutVoir: { fontFamily: polices.texteGras, fontSize: 15, color: couleurs.corail },
   carrousel: { gap: 14, paddingHorizontal: MARGE },
+  chargement: { paddingVertical: 40 },
+  espace: { marginTop: 20 },
+  vide: { fontFamily: polices.texte, fontSize: 15, color: couleurs.encre2 },
   panneauOffres: {
     paddingHorizontal: 14,
     paddingVertical: 4,

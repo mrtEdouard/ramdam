@@ -27,7 +27,24 @@ export function envoyer<T>(chemin: string, corps: unknown): Promise<T> {
 
 // GET d'une route protégée : le jeton prouve à l'API qui fait la demande (JwtAuthGuard).
 export function lire<T>(chemin: string, jeton: string): Promise<T> {
-  return requete<T>(chemin, { headers: { Authorization: `Bearer ${jeton}` } });
+  return appeler<T>('GET', chemin, jeton);
+}
+
+// Appel d'une route protégée avec n'importe quelle méthode (POST, PATCH, DELETE...).
+export function appeler<T>(
+  methode: 'GET' | 'POST' | 'PATCH' | 'DELETE',
+  chemin: string,
+  jeton: string,
+  corps?: unknown,
+): Promise<T> {
+  return requete<T>(chemin, {
+    method: methode,
+    headers: {
+      Authorization: `Bearer ${jeton}`,
+      ...(corps !== undefined && { 'Content-Type': 'application/json' }),
+    },
+    body: corps !== undefined ? JSON.stringify(corps) : undefined,
+  });
 }
 
 async function requete<T>(chemin: string, options: RequestInit): Promise<T> {

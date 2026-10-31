@@ -19,7 +19,8 @@ export default function LayoutApp() {
       }}
     >
       <Stack.Screen name="(onglets)" options={{ headerShown: false }} />
-      <Stack.Screen name="fiches/[id]" options={{ title: 'Fiche' }} />
+      <Stack.Screen name="fiches/[id]/index" options={{ title: 'Fiche' }} />
+      <Stack.Screen name="fiches/[id]/modifier" options={{ title: 'Modifier la fiche' }} />
       <Stack.Screen name="fiches/nouvelle" options={{ title: 'Nouvelle fiche' }} />
       <Stack.Screen name="offres/[id]" options={{ title: 'Offre' }} />
       <Stack.Screen name="profil" options={{ title: 'Profil' }} />

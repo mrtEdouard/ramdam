@@ -1,9 +1,10 @@
+import { libellesTypeFiche, type FicheResume } from '@ramdam/shared';
 import { Image } from 'expo-image';
 import { Link } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Avatar } from '@/components/avatar';
 import { couleurs, polices } from '@/constants/theme';
-import { libellesTypeFiche, type FicheResume } from '@/donnees/demo';
+import { imageDeFiche } from '@/lib/images';
 import { duree } from '@/lib/format';
 
 // Carte d'une fiche dans un carrousel : la photo d'abord, le texte dessous, sans cadre.
@@ -16,7 +17,12 @@ export function CarteFiche({ fiche }: { fiche: FicheResume }) {
         accessibilityLabel={`${fiche.titre}, ${libellesTypeFiche[fiche.type]}, ${fiche.ageMin} à ${fiche.ageMax} ans, par ${fiche.auteur}`}
       >
         <View>
-          <Image source={fiche.image} style={styles.image} contentFit="cover" transition={150} />
+          <Image
+            source={imageDeFiche(fiche)}
+            style={styles.image}
+            contentFit="cover"
+            transition={150}
+          />
           <Text style={styles.etiquette}>{libellesTypeFiche[fiche.type]}</Text>
         </View>
         <Text style={styles.titre} numberOfLines={2}>
