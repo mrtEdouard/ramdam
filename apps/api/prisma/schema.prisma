@@ -1,5 +1,5 @@
 // Généré par `prisma db pull` à partir de la base : ne pas modifier à la main.
-// Le schéma de référence reste database/01_schema.sql.
+// Le schéma de référence reste database/01_schema.sql et database/migrations/.
 
 generator client {
   provider        = "prisma-client"
@@ -84,18 +84,20 @@ model fiche {
   duree_minutes       Int           @db.SmallInt
   nb_participants_min Int?          @db.SmallInt
   nb_participants_max Int?          @db.SmallInt
-  objectifs           String?
-  materiel            String?
+  objectifs           String[]      @default([])
+  materiel            String[]      @default([])
   deroulement         String
   image_url           String?
   statut              statut_fiche  @default(BROUILLON)
   publiee_le          DateTime?     @db.Timestamptz(6)
   cree_le             DateTime      @default(now()) @db.Timestamptz(6)
   modifie_le          DateTime      @default(now()) @db.Timestamptz(6)
+  type_personnalise   String?       @db.VarChar(40)
   aimer               aimer[]
   commentaire         commentaire[]
   favori              favori[]
   utilisateur         utilisateur   @relation(fields: [auteur_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  photo_fiche         photo_fiche[]
   signalement         signalement[]
 
   @@index([auteur_id], map: "fiche_auteur_idx")
@@ -197,6 +199,21 @@ model utilisateur {
   offre                                          offre[]
   signalement_signalement_admin_idToutilisateur  signalement[]            @relation("signalement_admin_idToutilisateur")
   signalement_signalement_auteur_idToutilisateur signalement[]            @relation("signalement_auteur_idToutilisateur")
+}
+
+model migration_appliquee {
+  nom          String   @id
+  appliquee_le DateTime @default(now()) @db.Timestamptz(6)
+}
+
+model photo_fiche {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  fiche_id   String   @db.Uuid
+  url        String
+  ajoutee_le DateTime @default(now()) @db.Timestamptz(6)
+  fiche      fiche    @relation(fields: [fiche_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([fiche_id, ajoutee_le], map: "photo_fiche_fiche_idx")
 }
 
 enum action_xp {

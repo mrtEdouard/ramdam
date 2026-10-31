@@ -17,9 +17,34 @@ const champsEnErreur = (resultat: {
 }) => resultat.error?.issues.map((issue) => issue.path.join('.')) ?? [];
 
 describe('creerFicheSchema', () => {
-  it('accepte une fiche complète et transforme un texte facultatif vide en null', () => {
-    const resultat = creerFicheSchema.parse({ ...valide, materiel: '   ' });
-    expect(resultat.materiel).toBeNull();
+  it('accepte une fiche sans matériel ni objectifs (listes vides par défaut)', () => {
+    const resultat = creerFicheSchema.parse(valide);
+    expect(resultat.materiel).toEqual([]);
+    expect(resultat.objectifs).toEqual([]);
+  });
+
+  it('retire les doublons du matériel, sans tenir compte des majuscules', () => {
+    const resultat = creerFicheSchema.parse({
+      ...valide,
+      materiel: ['Plots', ' plots ', 'Cordes'],
+    });
+    expect(resultat.materiel).toEqual(['Plots', 'Cordes']);
+  });
+
+  it('refuse plus de 30 éléments de matériel', () => {
+    const trop = Array.from({ length: 31 }, (_, i) => `Objet ${i}`);
+    expect(champsEnErreur(creerFicheSchema.safeParse({ ...valide, materiel: trop }))).toEqual([
+      'materiel',
+    ]);
+  });
+
+  it('demande un nom pour le type « Autre » (RG-21)', () => {
+    expect(champsEnErreur(creerFicheSchema.safeParse({ ...valide, type: 'AUTRE' }))).toEqual([
+      'typePersonnalise',
+    ]);
+    expect(
+      creerFicheSchema.safeParse({ ...valide, type: 'AUTRE', typePersonnalise: 'Théâtre' }).success,
+    ).toBe(true);
   });
 
   it('refuse un âge minimum supérieur au maximum (RG-07)', () => {

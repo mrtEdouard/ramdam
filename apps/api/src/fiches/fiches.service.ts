@@ -4,16 +4,20 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import type {
-  CreerFicheDto,
-  FicheDetail,
-  FicheResume,
-  FiltresFiches,
-  ModifierFicheDto,
-  PageDeFiches,
+import {
+  PHOTOS_PAR_FICHE,
+  type CreerFicheDto,
+  type FicheDetail,
+  type FicheResume,
+  type FiltresFiches,
+  type ModifierFicheDto,
+  type PageDeFiches,
+  type PhotoFiche,
+  type TypeFiche,
 } from '@ramdam/shared';
 import type { Prisma } from '../generated/prisma/client.js';
 import type { UtilisateurJwt } from '../auth/jwt-auth.guard.js';
+import { StockageImages } from '../images/stockage-images.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 
 // Champs lus pour chaque fiche : l'auteur et le nombre de « j'aime » viennent des tables liées.
@@ -22,11 +26,21 @@ const AVEC_AUTEUR_ET_AIMES = {
   _count: { select: { aimer: true } },
 } as const;
 
+// Pour le détail, on ajoute la galerie, de la plus ancienne photo à la plus récente.
+const DETAIL = {
+  ...AVEC_AUTEUR_ET_AIMES,
+  photo_fiche: { select: { id: true, url: true }, orderBy: { ajoutee_le: 'asc' } },
+} as const;
+
 type FicheLue = Prisma.ficheGetPayload<{ include: typeof AVEC_AUTEUR_ET_AIMES }>;
+type FicheDetaillee = Prisma.ficheGetPayload<{ include: typeof DETAIL }>;
 
 @Injectable()
 export class FichesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly images: StockageImages,
+  ) {}
 
   async lister(filtres: FiltresFiches): Promise<PageDeFiches> {
     // Seules les fiches publiées sont visibles dans la liste.
@@ -96,10 +110,7 @@ export class FichesService {
   }
 
   async detail(id: string, utilisateur: UtilisateurJwt): Promise<FicheDetail> {
-    const fiche = await this.prisma.fiche.findUnique({
-      where: { id },
-      include: AVEC_AUTEUR_ET_AIMES,
-    });
+    const fiche = await this.prisma.fiche.findUnique({ where: { id }, include: DETAIL });
     const estAuteur = fiche?.auteur_id === utilisateur.sub;
     // Un brouillon ou une fiche masquée n'existe que pour son auteur : pour les autres, 404,
     // sans révéler qu'une fiche porte cet identifiant.
@@ -115,6 +126,8 @@ export class FichesService {
         auteur_id: utilisateur.sub,
         titre: dto.titre,
         type: dto.type,
+        // RG-21 : le nom personnalisé n'est gardé que pour le type « Autre ».
+        type_personnalise: dto.type === 'AUTRE' ? dto.typePersonnalise : null,
         age_min: dto.ageMin,
         age_max: dto.ageMax,
         duree_minutes: dto.dureeMinutes,
@@ -128,7 +141,7 @@ export class FichesService {
         statut: dto.publier ? 'PUBLIEE' : 'BROUILLON',
         publiee_le: dto.publier ? new Date() : null,
       },
-      include: AVEC_AUTEUR_ET_AIMES,
+      include: DETAIL,
     });
     return versDetail(fiche, true);
   }
@@ -155,6 +168,13 @@ export class FichesService {
     ) {
       throw new BadRequestException('Les minimums doivent être inférieurs ou égaux aux maximums');
     }
+    // Même principe pour le type : « Autre » demande un nom, les autres types n'en gardent pas.
+    const type: TypeFiche = dto.type ?? fiche.type;
+    const nomDuType =
+      dto.typePersonnalise === undefined ? fiche.type_personnalise : dto.typePersonnalise;
+    if (type === 'AUTRE' && !nomDuType) {
+      throw new BadRequestException('Donne un nom à ton type d’activité');
+    }
 
     // Une fiche publiée ne redevient pas brouillon, et une fiche masquée par la modération le reste.
     const publication =
@@ -164,8 +184,12 @@ export class FichesService {
 
     const modifiee = await this.prisma.fiche.update({
       where: { id },
-      data: { ...versColonnes(dto), ...publication },
-      include: AVEC_AUTEUR_ET_AIMES,
+      data: {
+        ...versColonnes(dto),
+        type_personnalise: type === 'AUTRE' ? nomDuType : null,
+        ...publication,
+      },
+      include: DETAIL,
     });
     return versDetail(modifiee, true);
   }
@@ -179,7 +203,65 @@ export class FichesService {
     if (fiche.auteur_id !== utilisateur.sub && utilisateur.role !== 'ADMIN') {
       throw new ForbiddenException('Tu ne peux supprimer que tes propres fiches');
     }
+    const photos = await this.prisma.photo_fiche.findMany({ where: { fiche_id: id } });
+    // La base supprime les lignes des photos avec la fiche (ON DELETE CASCADE) ;
+    // les fichiers, eux, sont effacés du disque ici.
     await this.prisma.fiche.delete({ where: { id } });
+    const urls = [fiche.image_url, ...photos.map((photo) => photo.url)];
+    await Promise.all(urls.map((url) => this.images.supprimer(url)));
+  }
+
+  // Photo de couverture : remplace l'ancienne, qui est effacée du disque.
+  async changerCouverture(id: string, contenu: Buffer, utilisateur: UtilisateurJwt) {
+    const fiche = await this.ficheDeLAuteur(id, utilisateur);
+    const url = await this.images.enregistrer(contenu);
+    const modifiee = await this.prisma.fiche.update({
+      where: { id },
+      data: { image_url: url },
+      include: DETAIL,
+    });
+    await this.images.supprimer(fiche.image_url);
+    return versDetail(modifiee, true);
+  }
+
+  async retirerCouverture(id: string, utilisateur: UtilisateurJwt) {
+    const fiche = await this.ficheDeLAuteur(id, utilisateur);
+    const modifiee = await this.prisma.fiche.update({
+      where: { id },
+      data: { image_url: null },
+      include: DETAIL,
+    });
+    await this.images.supprimer(fiche.image_url);
+    return versDetail(modifiee, true);
+  }
+
+  async ajouterPhoto(
+    id: string,
+    contenu: Buffer,
+    utilisateur: UtilisateurJwt,
+  ): Promise<PhotoFiche> {
+    await this.ficheDeLAuteur(id, utilisateur);
+    // RG-22 : 10 photos au plus par galerie.
+    const nombre = await this.prisma.photo_fiche.count({ where: { fiche_id: id } });
+    if (nombre >= PHOTOS_PAR_FICHE) {
+      throw new BadRequestException(`La galerie est pleine : ${PHOTOS_PAR_FICHE} photos maximum`);
+    }
+    const url = await this.images.enregistrer(contenu);
+    return this.prisma.photo_fiche.create({
+      data: { fiche_id: id, url },
+      select: { id: true, url: true },
+    });
+  }
+
+  async retirerPhoto(id: string, photoId: string, utilisateur: UtilisateurJwt) {
+    await this.ficheDeLAuteur(id, utilisateur);
+    // La photo doit appartenir à cette fiche : on ne supprime pas la photo d'une autre fiche.
+    const photo = await this.prisma.photo_fiche.findFirst({ where: { id: photoId, fiche_id: id } });
+    if (!photo) {
+      throw new NotFoundException('Photo introuvable');
+    }
+    await this.prisma.photo_fiche.delete({ where: { id: photoId } });
+    await this.images.supprimer(photo.url);
   }
 
   private async ficheDeLAuteur(id: string, utilisateur: UtilisateurJwt) {
@@ -217,6 +299,7 @@ function versResume(fiche: FicheLue): FicheResume {
     id: fiche.id,
     titre: fiche.titre,
     type: fiche.type,
+    typePersonnalise: fiche.type_personnalise,
     ageMin: fiche.age_min,
     ageMax: fiche.age_max,
     dureeMinutes: fiche.duree_minutes,
@@ -228,7 +311,7 @@ function versResume(fiche: FicheLue): FicheResume {
   };
 }
 
-function versDetail(fiche: FicheLue, estAuteur: boolean): FicheDetail {
+function versDetail(fiche: FicheDetaillee, estAuteur: boolean): FicheDetail {
   return {
     ...versResume(fiche),
     nbParticipantsMin: fiche.nb_participants_min,
@@ -236,6 +319,7 @@ function versDetail(fiche: FicheLue, estAuteur: boolean): FicheDetail {
     objectifs: fiche.objectifs,
     materiel: fiche.materiel,
     deroulement: fiche.deroulement,
+    photos: fiche.photo_fiche,
     estAuteur,
   };
 }

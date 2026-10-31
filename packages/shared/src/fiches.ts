@@ -24,15 +24,18 @@ const participants = z
   .int('Un nombre entier')
   .min(1, 'Au moins 1 participant')
   .max(500, '500 participants maximum');
-// Un texte facultatif laissé vide devient null : la colonne est vidée, même lors d'une modification.
-const texteFacultatif = (max: number) =>
+// Liste de mots-clés (matériel, objectifs) : chaque mot fait 1 à 40 caractères,
+// et un même mot n'apparaît qu'une fois, quelle que soit sa casse.
+const motsCles = (maximum: number) =>
   z
-    .string()
-    .trim()
-    .max(max, `${max} caractères maximum`)
-    .transform((texte) => texte || null)
-    .nullable()
-    .optional();
+    .array(z.string().trim().min(1, 'Mot vide').max(40, '40 caractères maximum par mot'))
+    .max(maximum, `${maximum} éléments maximum`)
+    .transform((mots) =>
+      mots.filter(
+        (mot, position) =>
+          mots.findIndex((autre) => autre.toLowerCase() === mot.toLowerCase()) === position,
+      ),
+    );
 
 const champsFiche = z.object({
   titre: z
@@ -41,6 +44,14 @@ const champsFiche = z.object({
     .min(3, 'Le titre doit faire au moins 3 caractères')
     .max(120, '120 caractères maximum'),
   type: z.enum(typesFiche, 'Choisis un type d’activité'),
+  // RG-21 : avec le type « Autre », l'auteur nomme son propre type (« Théâtre », « Jeu de piste »…).
+  typePersonnalise: z
+    .string()
+    .trim()
+    .min(2, 'Le nom du type doit faire au moins 2 caractères')
+    .max(40, '40 caractères maximum')
+    .nullable()
+    .optional(),
   ageMin: age,
   ageMax: age,
   dureeMinutes: z
@@ -51,8 +62,8 @@ const champsFiche = z.object({
   // null = pas de limite (champ laissé vide).
   nbParticipantsMin: participants.nullable().optional(),
   nbParticipantsMax: participants.nullable().optional(),
-  objectifs: texteFacultatif(2000),
-  materiel: texteFacultatif(2000),
+  objectifs: motsCles(15).default([]),
+  materiel: motsCles(30).default([]),
   deroulement: z
     .string()
     .trim()
@@ -66,6 +77,13 @@ type ChampsFiche = z.infer<typeof champsFiche>;
 
 // Règles qui comparent deux champs entre eux : elles s'appliquent quand les deux sont présents.
 function verifierCoherence(fiche: Partial<ChampsFiche>, ctx: z.RefinementCtx) {
+  if (fiche.type === 'AUTRE' && !fiche.typePersonnalise) {
+    ctx.addIssue({
+      code: 'custom',
+      path: ['typePersonnalise'],
+      message: 'Donne un nom à ton type d’activité',
+    });
+  }
   if (fiche.ageMin !== undefined && fiche.ageMax !== undefined && fiche.ageMin > fiche.ageMax) {
     ctx.addIssue({
       code: 'custom',
@@ -89,7 +107,11 @@ function verifierCoherence(fiche: Partial<ChampsFiche>, ctx: z.RefinementCtx) {
 export const creerFicheSchema = champsFiche.superRefine(verifierCoherence);
 
 // Pour une modification, chaque champ est facultatif : on n'envoie que ce qui change.
-export const modifierFicheSchema = champsFiche.partial().superRefine(verifierCoherence);
+// Les listes n'ont pas de valeur par défaut ici : une liste absente n'est pas modifiée.
+export const modifierFicheSchema = champsFiche
+  .extend({ objectifs: motsCles(15), materiel: motsCles(30) })
+  .partial()
+  .superRefine(verifierCoherence);
 
 // Filtres de la liste, lus dans l'adresse (?type=VEILLEE&age=8&page=2) : tout arrive en texte,
 // z.coerce le convertit en nombre.
@@ -110,6 +132,7 @@ export type FicheResume = {
   id: string;
   titre: string;
   type: TypeFiche;
+  typePersonnalise: string | null;
   ageMin: number;
   ageMax: number;
   dureeMinutes: number;
@@ -124,11 +147,77 @@ export type FicheResume = {
 export type FicheDetail = FicheResume & {
   nbParticipantsMin: number | null;
   nbParticipantsMax: number | null;
-  objectifs: string | null;
-  materiel: string | null;
+  objectifs: string[];
+  materiel: string[];
   deroulement: string;
+  photos: PhotoFiche[];
   estAuteur: boolean;
 };
+
+export type PhotoFiche = { id: string; url: string };
+
+// RG-22 : 10 photos au plus dans la galerie d'une fiche.
+export const PHOTOS_PAR_FICHE = 10;
+
+// Nom du type à afficher : le nom choisi par l'auteur pour le type « Autre ».
+export function libelleType(fiche: Pick<FicheResume, 'type' | 'typePersonnalise'>) {
+  return fiche.type === 'AUTRE' && fiche.typePersonnalise
+    ? fiche.typePersonnalise
+    : libellesTypeFiche[fiche.type];
+}
+
+// Bulles proposées dans le formulaire ; l'auteur peut toujours ajouter les siennes.
+export const suggestionsMateriel = [
+  'Plots',
+  'Cônes',
+  'Cordes',
+  'Ballons',
+  'Foulards',
+  'Chasubles',
+  'Cerceaux',
+  'Sifflet',
+  'Chronomètre',
+  'Balles de tennis',
+  'Frisbee',
+  'Bandeaux',
+  'Craies',
+  'Feutres',
+  'Crayons',
+  'Feuilles',
+  'Ciseaux',
+  'Colle',
+  'Peinture',
+  'Pinceaux',
+  'Gommettes',
+  'Papier crépon',
+  'Pâte à modeler',
+  'Cartes',
+  'Dés',
+  'Lampes torches',
+  'Boussole',
+  'Plan du site',
+  'Enceinte',
+  'Costumes',
+];
+
+export const suggestionsObjectifs = [
+  'Coopérer',
+  'Esprit d’équipe',
+  'Se dépenser',
+  'Motricité',
+  'Respecter des règles',
+  'Stratégie',
+  'Concentration',
+  'Écoute',
+  'Communiquer',
+  'Créativité',
+  'Imagination',
+  'Prendre confiance en soi',
+  'Gérer ses émotions',
+  'Se repérer dans l’espace',
+  'Découvrir la nature',
+  'Créer du lien',
+];
 
 export type PageDeFiches = {
   fiches: FicheResume[];

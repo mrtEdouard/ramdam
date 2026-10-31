@@ -5,12 +5,15 @@ import {
   Get,
   HttpCode,
   Param,
-  ParseUUIDPipe,
   Patch,
   Post,
+  Put,
   Query,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import {
   creerFicheSchema,
   filtresFichesSchema,
@@ -21,7 +24,9 @@ import {
 } from '@ramdam/shared';
 import { JwtAuthGuard, type UtilisateurJwt } from '../auth/jwt-auth.guard.js';
 import { UtilisateurConnecte } from '../auth/utilisateur-connecte.decorator.js';
+import { IdentifiantPipe } from '../commun/identifiant.pipe.js';
 import { ZodValidationPipe } from '../commun/zod-validation.pipe.js';
+import { fichierImage, TAILLE_MAX_IMAGE } from '../images/fichier-image.pipe.js';
 import { FichesService } from './fiches.service.js';
 
 // Toutes les routes des fiches demandent d'être connecté.
@@ -46,10 +51,10 @@ export class FichesController {
     return this.fichesService.miennes(utilisateur);
   }
 
-  // ParseUUIDPipe refuse (400) un identifiant qui n'a pas le format d'un UUID, avant toute requête SQL.
+  // IdentifiantPipe refuse (400) un identifiant qui n'a pas le format d'un UUID, avant toute requête SQL.
   @Get(':id')
   detail(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id', IdentifiantPipe) id: string,
     @UtilisateurConnecte() utilisateur: UtilisateurJwt,
   ) {
     return this.fichesService.detail(id, utilisateur);
@@ -65,7 +70,7 @@ export class FichesController {
 
   @Patch(':id')
   modifier(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id', IdentifiantPipe) id: string,
     @Body(new ZodValidationPipe(modifierFicheSchema)) dto: ModifierFicheDto,
     @UtilisateurConnecte() utilisateur: UtilisateurJwt,
   ) {
@@ -75,9 +80,50 @@ export class FichesController {
   @Delete(':id')
   @HttpCode(204)
   supprimer(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id', IdentifiantPipe) id: string,
     @UtilisateurConnecte() utilisateur: UtilisateurJwt,
   ) {
     return this.fichesService.supprimer(id, utilisateur);
+  }
+
+  // ---------- Photos (envoyées en multipart/form-data, champ « image ») ----------
+  // FileInterceptor lit le fichier en mémoire et coupe l'envoi au-delà de la taille maximale.
+
+  @Put(':id/couverture')
+  @UseInterceptors(FileInterceptor('image', { limits: { fileSize: TAILLE_MAX_IMAGE } }))
+  changerCouverture(
+    @Param('id', IdentifiantPipe) id: string,
+    @UploadedFile(fichierImage) fichier: Express.Multer.File,
+    @UtilisateurConnecte() utilisateur: UtilisateurJwt,
+  ) {
+    return this.fichesService.changerCouverture(id, fichier.buffer, utilisateur);
+  }
+
+  @Delete(':id/couverture')
+  retirerCouverture(
+    @Param('id', IdentifiantPipe) id: string,
+    @UtilisateurConnecte() utilisateur: UtilisateurJwt,
+  ) {
+    return this.fichesService.retirerCouverture(id, utilisateur);
+  }
+
+  @Post(':id/photos')
+  @UseInterceptors(FileInterceptor('image', { limits: { fileSize: TAILLE_MAX_IMAGE } }))
+  ajouterPhoto(
+    @Param('id', IdentifiantPipe) id: string,
+    @UploadedFile(fichierImage) fichier: Express.Multer.File,
+    @UtilisateurConnecte() utilisateur: UtilisateurJwt,
+  ) {
+    return this.fichesService.ajouterPhoto(id, fichier.buffer, utilisateur);
+  }
+
+  @Delete(':id/photos/:photoId')
+  @HttpCode(204)
+  retirerPhoto(
+    @Param('id', IdentifiantPipe) id: string,
+    @Param('photoId', IdentifiantPipe) photoId: string,
+    @UtilisateurConnecte() utilisateur: UtilisateurJwt,
+  ) {
+    return this.fichesService.retirerPhoto(id, photoId, utilisateur);
   }
 }

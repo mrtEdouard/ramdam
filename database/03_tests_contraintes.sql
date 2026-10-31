@@ -65,6 +65,19 @@ SELECT pg_temp.doit_echouer('RG-20 signalement visant deux cibles',
      VALUES ('00000000-0000-0000-0000-000000000004', '10000000-0000-0000-0000-000000000001',
              '30000000-0000-0000-0000-000000000001', 'x')$q$);
 
+SELECT pg_temp.doit_echouer('RG-21 fiche de type AUTRE sans nom de type',
+  $q$INSERT INTO fiche (auteur_id, titre, type, age_min, age_max, duree_minutes, deroulement)
+     VALUES ('00000000-0000-0000-0000-000000000004', 'x', 'AUTRE', 6, 10, 30, 'x')$q$);
+
+SELECT pg_temp.doit_echouer('RG-21 nom de type sur une fiche qui n''est pas AUTRE',
+  $q$INSERT INTO fiche (auteur_id, titre, type, type_personnalise, age_min, age_max, duree_minutes, deroulement)
+     VALUES ('00000000-0000-0000-0000-000000000004', 'x', 'JEU', 'Théâtre', 6, 10, 30, 'x')$q$);
+
+SELECT pg_temp.doit_echouer('Plus de 30 mots de matériel',
+  $q$INSERT INTO fiche (auteur_id, titre, type, age_min, age_max, duree_minutes, deroulement, materiel)
+     VALUES ('00000000-0000-0000-0000-000000000004', 'x', 'JEU', 6, 10, 30, 'x',
+             array_fill('plot'::text, ARRAY[31]))$q$);
+
 -- RG-17 et RG-18 : XP attribuée une seule fois, même après un like retiré puis remis
 DO $$
 DECLARE

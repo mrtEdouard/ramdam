@@ -13,7 +13,10 @@
     "format:check": "prettier --check .",
     "db:up": "docker compose up -d",
     "db:down": "docker compose down",
-    "db:init": "cat database/01_schema.sql database/02_jeu_essai.sql | docker compose exec -T postgres sh -c 'psql -q -U \"$POSTGRES_USER\" -d \"$POSTGRES_DB\" -v ON_ERROR_STOP=1'",
+    "db:init": "pnpm db:schema && pnpm db:migrer && pnpm db:jeu-essai",
+    "db:schema": "cat database/01_schema.sql | docker compose exec -T postgres sh -c 'psql -q -U \"$POSTGRES_USER\" -d \"$POSTGRES_DB\" -v ON_ERROR_STOP=1'",
+    "db:migrer": "node scripts/migrer.mjs",
+    "db:jeu-essai": "cat database/02_jeu_essai.sql | docker compose exec -T postgres sh -c 'psql -q -U \"$POSTGRES_USER\" -d \"$POSTGRES_DB\" -v ON_ERROR_STOP=1'",
     "xp": "node scripts/ajouter-xp.mjs"
   },
   "devDependencies": {

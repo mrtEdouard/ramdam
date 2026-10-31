@@ -4,6 +4,8 @@ import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
 import { AuthModule } from './auth/auth.module.js';
 import { FichesModule } from './fiches/fiches.module.js';
+import { ImagesModule } from './images/images.module.js';
+import { OffresModule } from './offres/offres.module.js';
 import { PrismaModule } from './prisma/prisma.module.js';
 import { ProfilModule } from './profil/profil.module.js';
 
@@ -14,6 +16,8 @@ import { ProfilModule } from './profil/profil.module.js';
     PrismaModule,
     AuthModule,
     FichesModule,
+    ImagesModule,
+    OffresModule,
     ProfilModule,
   ],
   controllers: [AppController],

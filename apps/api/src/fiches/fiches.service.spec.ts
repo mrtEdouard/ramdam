@@ -1,5 +1,6 @@
 import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import type { UtilisateurJwt } from '../auth/jwt-auth.guard.js';
+import type { StockageImages } from '../images/stockage-images.service.js';
 import type { PrismaService } from '../prisma/prisma.service.js';
 import { FichesService } from './fiches.service.js';
 
@@ -12,9 +13,21 @@ const prisma = {
     update: vi.fn(),
     delete: vi.fn(),
   },
+  photo_fiche: {
+    count: vi.fn(),
+    create: vi.fn(),
+    findFirst: vi.fn(),
+    findMany: vi.fn(),
+    delete: vi.fn(),
+  },
   $queryRaw: vi.fn(),
 };
-const service = new FichesService(prisma as unknown as PrismaService);
+// Le stockage des images est simulé : les tests ne touchent pas au disque.
+const images = { enregistrer: vi.fn(), supprimer: vi.fn() };
+const service = new FichesService(
+  prisma as unknown as PrismaService,
+  images as unknown as StockageImages,
+);
 
 const lea: UtilisateurJwt = { sub: 'id-lea', role: 'ANIMATEUR' };
 const karim: UtilisateurJwt = { sub: 'id-karim', role: 'ANIMATEUR' };
@@ -27,13 +40,14 @@ function ficheEnBase(modifs: Record<string, unknown> = {}) {
     auteur_id: 'id-lea',
     titre: 'Loup-garou sous les étoiles',
     type: 'VEILLEE',
+    type_personnalise: null,
     age_min: 8,
     age_max: 12,
     duree_minutes: 60,
     nb_participants_min: 8,
     nb_participants_max: 20,
-    objectifs: null,
-    materiel: 'Cartes rôles',
+    objectifs: [],
+    materiel: ['Cartes rôles'],
     deroulement: 'Variante du loup-garou en extérieur.',
     image_url: null,
     statut: 'PUBLIEE',
@@ -42,6 +56,7 @@ function ficheEnBase(modifs: Record<string, unknown> = {}) {
     modifie_le: new Date('2026-10-20T18:00:00Z'),
     utilisateur: { pseudo: 'lea.anim' },
     _count: { aimer: 3 },
+    photo_fiche: [],
     ...modifs,
   };
 }
@@ -52,6 +67,8 @@ const nouvelleFiche = {
   ageMin: 6,
   ageMax: 12,
   dureeMinutes: 90,
+  materiel: ['Fiches photos', 'Crayons'],
+  objectifs: [],
   deroulement: 'Retrouver les éléments de la nature photographiés.',
   publier: true,
 };
@@ -142,7 +159,28 @@ describe('FichesService.creer', () => {
   });
 });
 
+describe('FichesService.creer avec un type personnalisé', () => {
+  it('garde le nom du type pour « Autre » (RG-21)', async () => {
+    prisma.fiche.create.mockResolvedValue(ficheEnBase());
+    await service.creer({ ...nouvelleFiche, type: 'AUTRE', typePersonnalise: 'Théâtre' }, lea);
+    expect(prisma.fiche.create.mock.calls[0][0].data.type_personnalise).toBe('Théâtre');
+  });
+
+  it('ignore le nom de type pour un type prédéfini', async () => {
+    prisma.fiche.create.mockResolvedValue(ficheEnBase());
+    await service.creer({ ...nouvelleFiche, typePersonnalise: 'Théâtre' }, lea);
+    expect(prisma.fiche.create.mock.calls[0][0].data.type_personnalise).toBeNull();
+  });
+});
+
 describe('FichesService.modifier', () => {
+  it('refuse de passer au type « Autre » sans lui donner de nom', async () => {
+    prisma.fiche.findUnique.mockResolvedValue(ficheEnBase());
+    await expect(service.modifier('id-fiche', { type: 'AUTRE' }, lea)).rejects.toThrow(
+      BadRequestException,
+    );
+  });
+
   it("refuse la modification par quelqu'un d'autre que l'auteur (RG-06)", async () => {
     prisma.fiche.findUnique.mockResolvedValue(ficheEnBase());
     await expect(service.modifier('id-fiche', { titre: 'Pirate' }, karim)).rejects.toThrow(
@@ -187,6 +225,7 @@ describe('FichesService.supprimer', () => {
 
   it("laisse l'auteur et un administrateur supprimer", async () => {
     prisma.fiche.findUnique.mockResolvedValue(ficheEnBase());
+    prisma.photo_fiche.findMany.mockResolvedValue([]);
     await service.supprimer('id-fiche', lea);
     await service.supprimer('id-fiche', admin);
     expect(prisma.fiche.delete).toHaveBeenCalledTimes(2);
@@ -195,5 +234,69 @@ describe('FichesService.supprimer', () => {
   it('répond 404 pour une fiche qui n’existe pas', async () => {
     prisma.fiche.findUnique.mockResolvedValue(null);
     await expect(service.supprimer('id-inconnu', lea)).rejects.toThrow(NotFoundException);
+  });
+});
+
+describe('Photos', () => {
+  it('ajoute une photo à la galerie de sa fiche', async () => {
+    prisma.fiche.findUnique.mockResolvedValue(ficheEnBase());
+    prisma.photo_fiche.count.mockResolvedValue(2);
+    images.enregistrer.mockResolvedValue('/images/abc.webp');
+    prisma.photo_fiche.create.mockResolvedValue({ id: 'id-photo', url: '/images/abc.webp' });
+
+    await expect(service.ajouterPhoto('id-fiche', Buffer.from('x'), lea)).resolves.toEqual({
+      id: 'id-photo',
+      url: '/images/abc.webp',
+    });
+  });
+
+  it('refuse une onzième photo (RG-22), sans rien enregistrer sur le disque', async () => {
+    prisma.fiche.findUnique.mockResolvedValue(ficheEnBase());
+    prisma.photo_fiche.count.mockResolvedValue(10);
+
+    await expect(service.ajouterPhoto('id-fiche', Buffer.from('x'), lea)).rejects.toThrow(
+      'La galerie est pleine',
+    );
+    expect(images.enregistrer).not.toHaveBeenCalled();
+  });
+
+  it("refuse d'ajouter une photo à la fiche de quelqu'un d'autre", async () => {
+    prisma.fiche.findUnique.mockResolvedValue(ficheEnBase());
+    await expect(service.ajouterPhoto('id-fiche', Buffer.from('x'), karim)).rejects.toThrow(
+      ForbiddenException,
+    );
+  });
+
+  it('ne supprime pas une photo qui appartient à une autre fiche', async () => {
+    prisma.fiche.findUnique.mockResolvedValue(ficheEnBase());
+    prisma.photo_fiche.findFirst.mockResolvedValue(null);
+
+    await expect(service.retirerPhoto('id-fiche', 'id-photo-ailleurs', lea)).rejects.toThrow(
+      NotFoundException,
+    );
+    expect(prisma.photo_fiche.delete).not.toHaveBeenCalled();
+  });
+
+  it("remplace la couverture et efface l'ancienne du disque", async () => {
+    prisma.fiche.findUnique.mockResolvedValue(ficheEnBase({ image_url: '/images/ancienne.webp' }));
+    images.enregistrer.mockResolvedValue('/images/nouvelle.webp');
+    prisma.fiche.update.mockResolvedValue(ficheEnBase({ image_url: '/images/nouvelle.webp' }));
+
+    const fiche = await service.changerCouverture('id-fiche', Buffer.from('x'), lea);
+
+    expect(fiche.imageUrl).toBe('/images/nouvelle.webp');
+    expect(images.supprimer).toHaveBeenCalledWith('/images/ancienne.webp');
+  });
+
+  it('efface la couverture et la galerie du disque quand la fiche est supprimée', async () => {
+    prisma.fiche.findUnique.mockResolvedValue(
+      ficheEnBase({ image_url: '/images/couverture.webp' }),
+    );
+    prisma.photo_fiche.findMany.mockResolvedValue([{ url: '/images/photo-1.webp' }]);
+
+    await service.supprimer('id-fiche', lea);
+
+    expect(images.supprimer).toHaveBeenCalledWith('/images/couverture.webp');
+    expect(images.supprimer).toHaveBeenCalledWith('/images/photo-1.webp');
   });
 });
