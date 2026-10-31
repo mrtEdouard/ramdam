@@ -25,3 +25,6 @@ apps/api/src/generated/
 
 # Cache de compilation TypeScript
 *.tsbuildinfo
+
+# Ancienne image de présentation, hors projet
+ramdam-mockup.*
