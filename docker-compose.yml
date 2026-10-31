@@ -27,8 +27,11 @@ services:
     volumes:
       - redis-data:/data
 
+  # Pas encore utilisé par l'API : lancé seulement avec « docker compose --profile stockage up -d ».
+  # L'image officielle n'est plus publiée sur Docker Hub, à remplacer quand l'upload d'images arrivera.
   minio:
     image: minio/minio:RELEASE.2025-04-22T22-12-26Z
+    profiles: ['stockage']
     restart: unless-stopped
     command: ['server', '/data', '--console-address', ':9001']
     environment:

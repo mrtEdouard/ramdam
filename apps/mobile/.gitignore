@@ -43,3 +43,6 @@ example
 
 # Généré par Expo à chaque démarrage
 expo-env.d.ts
+
+# Moteur Skia pour le web, copié par « pnpm generate »
+/public/canvaskit.wasm

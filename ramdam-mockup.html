@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Ramdam — Maquette</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --coral: #FF5A3C;
+    --coral-soft: #FFE3DC;
+    --sun: #FFC23D;
+    --sun-soft: #FFF1CC;
+    --mint: #2EC4A6;
+    --mint-soft: #D5F5EE;
+    --violet: #7B61FF;
+    --violet-soft: #E9E4FF;
+    --ink: #1C1A33;
+    --ink-2: #5B5873;
+    --ink-3: #9A97AE;
+    --cream: #FFF8F0;
+    --card: #FFFFFF;
+    --line: #F0E8DE;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1600px; height: 1000px; overflow: hidden; }
+  body {
+    font-family: Inter, "Noto Sans", Ubuntu, sans-serif;
+    color: var(--ink);
+    background: var(--cream);
+    position: relative;
+  }
+
+  /* Décor de fond */
+  .blob { position: absolute; border-radius: 50%; filter: blur(2px); }
+  .b1 { width: 760px; height: 760px; right: -120px; top: -160px; background: radial-gradient(circle at 40% 40%, #FFD7CC, #FFE9D6 60%, transparent 70%); }
+  .b2 { width: 520px; height: 520px; left: -160px; bottom: -220px; background: radial-gradient(circle, #FFEBB8, transparent 68%); }
+  .confetti { position: absolute; border-radius: 4px; }
+
+  /* Colonne gauche */
+  .left { position: absolute; left: 110px; top: 0; bottom: 0; width: 620px; display: flex; flex-direction: column; justify-content: center; }
+  .brand { display: flex; align-items: center; gap: 18px; margin-bottom: 34px; }
+  .logo {
+    width: 84px; height: 84px; border-radius: 26px; background: var(--coral);
+    display: grid; place-items: center; transform: rotate(-8deg);
+    box-shadow: 0 14px 30px -10px rgba(255,90,60,.6), inset 0 -6px 0 rgba(0,0,0,.12);
+  }
+  .logo svg { width: 48px; height: 48px; }
+  .wordmark { font-family: "Bricolage Grotesque", sans-serif; font-weight: 800; font-size: 120px; letter-spacing: -5px; line-height: .9; }
+  .wordmark span { color: var(--coral); }
+  .tagline { font-family: "Bricolage Grotesque", sans-serif; font-weight: 700; font-size: 44px; line-height: 1.08; letter-spacing: -1px; margin-bottom: 22px; }
+  .tagline em { font-style: normal; background: linear-gradient(transparent 60%, var(--sun) 60%); padding: 0 4px; }
+  .sub { font-size: 20px; line-height: 1.5; color: var(--ink-2); max-width: 520px; margin-bottom: 36px; }
+  .pills { display: flex; flex-wrap: wrap; gap: 12px; max-width: 560px; }
+  .pill { display: inline-flex; align-items: center; gap: 8px; padding: 11px 18px; border-radius: 999px; font-weight: 600; font-size: 16px; background: var(--card); border: 2px solid var(--ink); box-shadow: 3px 3px 0 var(--ink); }
+  .soon { margin-top: 40px; font-size: 14px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--ink-3); }
+
+  /* Téléphones */
+  .phone {
+    position: absolute; width: 330px; height: 690px; border-radius: 48px; background: var(--ink);
+    padding: 12px; box-shadow: 0 40px 80px -30px rgba(28,26,51,.55), 0 10px 30px -10px rgba(28,26,51,.3);
+  }
+  .screen { width: 100%; height: 100%; border-radius: 37px; background: var(--cream); overflow: hidden; position: relative; }
+  .notch { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); width: 96px; height: 26px; background: var(--ink); border-radius: 20px; z-index: 5; }
+  .status { height: 46px; display: flex; justify-content: space-between; align-items: center; padding: 6px 26px 0; font-size: 13px; font-weight: 700; }
+  .p-center { left: 980px; top: 150px; z-index: 3; }
+  .p-left { left: 760px; top: 220px; transform: rotate(-7deg); z-index: 2; }
+  .p-right { left: 1200px; top: 230px; transform: rotate(7deg); z-index: 1; }
+
+  .appbar { display: flex; justify-content: space-between; align-items: center; padding: 6px 18px 10px; }
+  .appbar h3 { font-family: "Bricolage Grotesque", sans-serif; font-weight: 800; font-size: 24px; letter-spacing: -.5px; }
+  .avatar { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 13px; color: #fff; }
+  .tabs { display: flex; gap: 8px; padding: 0 18px 12px; overflow: hidden; }
+  .tab { white-space: nowrap; flex-shrink: 0; font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 999px; background: var(--card); color: var(--ink-2); border: 1px solid var(--line); }
+  .tab.on { background: var(--ink); color: #fff; border-color: var(--ink); }
+
+  .card { background: var(--card); margin: 0 14px 12px; border-radius: 20px; padding: 12px; box-shadow: 0 2px 0 var(--line); }
+  .thumb { height: 104px; border-radius: 14px; display: grid; place-items: center; font-size: 46px; position: relative; margin-bottom: 10px; }
+  .tag { position: absolute; top: 8px; left: 8px; font-size: 10px; font-weight: 700; padding: 4px 8px; border-radius: 999px; background: rgba(255,255,255,.9); }
+  .card h4 { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+  .meta { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--ink-2); }
+  .meta .avatar { width: 22px; height: 22px; font-size: 9px; }
+  .lvl { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 999px; background: var(--sun-soft); color: #9A6B00; }
+  .actions { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); font-size: 12px; font-weight: 600; color: var(--ink-2); }
+  .actions .stat { display: flex; gap: 12px; }
+  .malle-btn { background: var(--coral); color: #fff; padding: 6px 11px; border-radius: 999px; font-size: 11px; font-weight: 700; }
+
+  .nav { position: absolute; bottom: 0; left: 0; right: 0; height: 70px; background: var(--card); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid var(--line); padding-bottom: 8px; }
+  .nav div { font-size: 22px; opacity: .45; }
+  .nav div.on { opacity: 1; }
+  .nav .plus { width: 46px; height: 46px; border-radius: 16px; background: var(--coral); color: #fff; display: grid; place-items: center; font-size: 26px; font-weight: 700; opacity: 1; box-shadow: 0 6px 14px -4px rgba(255,90,60,.6); }
+
+  /* Malle */
+  .xp { margin: 0 14px 14px; background: var(--ink); color: #fff; border-radius: 20px; padding: 14px; }
+  .xp .row { display: flex; justify-content: space-between; align-items: center; font-size: 12px; margin-bottom: 8px; }
+  .xp b { font-family: "Bricolage Grotesque", sans-serif; font-size: 17px; }
+  .bar { height: 9px; background: rgba(255,255,255,.15); border-radius: 999px; overflow: hidden; }
+  .bar i { display: block; height: 100%; width: 68%; background: linear-gradient(90deg, var(--sun), var(--coral)); border-radius: 999px; }
+  .badges { display: flex; gap: 8px; margin-top: 12px; }
+  .badge { width: 34px; height: 34px; border-radius: 12px; display: grid; place-items: center; font-size: 17px; background: rgba(255,255,255,.1); }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 0 14px; }
+  .tile { background: var(--card); border-radius: 16px; padding: 10px; box-shadow: 0 2px 0 var(--line); }
+  .tile .t { height: 66px; border-radius: 11px; display: grid; place-items: center; font-size: 30px; margin-bottom: 8px; position: relative; }
+  .tile p { font-size: 12px; font-weight: 700; line-height: 1.25; }
+  .tile small { font-size: 10px; color: var(--ink-3); }
+  .link { position: absolute; top: 5px; right: 5px; font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 999px; background: #fff; color: var(--violet); }
+  .section { padding: 2px 18px 8px; font-size: 12px; font-weight: 700; color: var(--ink-3); text-transform: uppercase; letter-spacing: 1px; }
+
+  /* Offres */
+  .offer { background: var(--card); margin: 0 14px 10px; border-radius: 18px; padding: 13px; box-shadow: 0 2px 0 var(--line); }
+  .offer .top { display: flex; gap: 10px; align-items: center; margin-bottom: 9px; }
+  .offer .ic { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; font-size: 20px; }
+  .offer h4 { font-size: 14px; font-weight: 700; }
+  .offer .org { font-size: 11px; color: var(--ink-2); }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { font-size: 10px; font-weight: 600; padding: 4px 8px; border-radius: 999px; background: var(--cream); color: var(--ink-2); }
+  .dir { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 700; color: var(--mint); margin-left: auto; }
+</style>
+</head>
+<body>
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+  <div class="confetti" style="left:690px;top:120px;width:18px;height:18px;background:var(--sun);transform:rotate(20deg)"></div>
+  <div class="confetti" style="left:760px;top:830px;width:14px;height:14px;background:var(--mint);border-radius:50%"></div>
+  <div class="confetti" style="left:1500px;top:110px;width:22px;height:10px;background:var(--violet);transform:rotate(-30deg)"></div>
+  <div class="confetti" style="left:1530px;top:900px;width:16px;height:16px;background:var(--coral);transform:rotate(45deg)"></div>
+  <div class="confetti" style="left:70px;top:110px;width:12px;height:12px;background:var(--coral);border-radius:50%"></div>
+
+  <div class="left">
+    <div class="brand">
+      <div class="logo">
+        <svg viewBox="0 0 48 48" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M8 20v8a2 2 0 0 0 2 2h5l14 8V10L15 18h-5a2 2 0 0 0-2 2z" fill="#fff"/>
+          <path d="M35 17c2.5 2 2.5 12 0 14"/>
+          <path d="M40 12c5 4 5 20 0 24"/>
+        </svg>
+      </div>
+      <div class="wordmark">Ramdam<span>.</span></div>
+    </div>
+    <div class="tagline">Le réseau social<br>des <em>animateurs</em>.</div>
+    <p class="sub">Partage tes activités, inspire-toi de celles des autres et trouve ta prochaine équipe d'anim, au même endroit.</p>
+    <div class="pills">
+      <span class="pill">📝 Fiches d'activités</span>
+      <span class="pill">🧳 La Malle</span>
+      <span class="pill">📣 Recrutement</span>
+      <span class="pill">🏆 XP &amp; badges</span>
+    </div>
+    <div class="soon">● En développement · Bientôt disponible</div>
+  </div>
+
+  <!-- Téléphone gauche : La Malle -->
+  <div class="phone p-left">
+    <div class="screen">
+      <div class="notch"></div>
+      <div class="status"><span>9:41</span><span>●●● 🔋</span></div>
+      <div class="appbar"><h3>Ma Malle 🧳</h3><div class="avatar" style="background:var(--violet)">LM</div></div>
+      <div class="xp">
+        <div class="row"><b>Anim confirmé</b><span>Niv. 7</span></div>
+        <div class="bar"><i></i></div>
+        <div class="row" style="margin:6px 0 0;opacity:.7;font-size:11px"><span>1 360 XP</span><span>2 000 XP</span></div>
+        <div class="badges"><div class="badge">🔥</div><div class="badge">🎯</div><div class="badge">🌙</div><div class="badge">🏕️</div></div>
+      </div>
+      <div class="section">Mes fiches · Favoris</div>
+      <div class="grid">
+        <div class="tile"><div class="t" style="background:var(--mint-soft)">🌲</div><p>Rallye nature</p><small>Ma fiche</small></div>
+        <div class="tile"><div class="t" style="background:var(--violet-soft)">🕵️<span class="link">↗ lien</span></div><p>Cluedo géant</p><small>par @julie.anim</small></div>
+        <div class="tile"><div class="t" style="background:var(--sun-soft)">🎭</div><p>Impro express</p><small>Ma fiche</small></div>
+        <div class="tile"><div class="t" style="background:var(--coral-soft)">🏴‍☠️<span class="link">↗ lien</span></div><p>Chasse au trésor</p><small>par @tom_bafa</small></div>
+      </div>
+      <div class="nav"><div>🏠</div><div>🔎</div><div class="plus">+</div><div class="on">🧳</div><div>👤</div></div>
+    </div>
+  </div>
+
+  <!-- Téléphone centre : Fil d'activités -->
+  <div class="phone p-center">
+    <div class="screen">
+      <div class="notch"></div>
+      <div class="status"><span>9:41</span><span>●●● 🔋</span></div>
+      <div class="appbar"><h3>Ramdam<span style="color:var(--coral)">.</span></h3><div class="avatar" style="background:var(--coral)">ED</div></div>
+      <div class="tabs"><span class="tab on">Pour toi</span><span class="tab">Grands jeux</span><span class="tab">Veillées</span></div>
+      <div class="card">
+        <div class="thumb" style="background:linear-gradient(135deg,#2B2560,#7B61FF)"><span class="tag">🌙 Veillée · 8-12 ans</span>✨</div>
+        <h4>Loup-garou sous les étoiles</h4>
+        <div class="meta"><div class="avatar" style="background:var(--mint)">JA</div>@julie.anim <span class="lvl">Niv. 12</span></div>
+        <div class="actions"><div class="stat"><span>❤️ 248</span><span>💬 36</span></div><span class="malle-btn">+ Ma malle</span></div>
+      </div>
+      <div class="card">
+        <div class="thumb" style="background:linear-gradient(135deg,#FFC23D,#FF8A3C)"><span class="tag">🏃 Grand jeu · 6-10 ans</span>🏴‍☠️</div>
+        <h4>La chasse au trésor du capitaine</h4>
+        <div class="meta"><div class="avatar" style="background:var(--violet)">TB</div>@tom_bafa <span class="lvl">Niv. 5</span></div>
+        <div class="actions"><div class="stat"><span>❤️ 112</span><span>💬 18</span></div><span class="malle-btn">+ Ma malle</span></div>
+      </div>
+      <div class="nav"><div class="on">🏠</div><div>🔎</div><div class="plus">+</div><div>🧳</div><div>👤</div></div>
+    </div>
+  </div>
+
+  <!-- Téléphone droite : Offres -->
+  <div class="phone p-right">
+    <div class="screen">
+      <div class="notch"></div>
+      <div class="status"><span>9:41</span><span>●●● 🔋</span></div>
+      <div class="appbar"><h3>Offres 📣</h3><div class="avatar" style="background:var(--mint)">ED</div></div>
+      <div class="tabs"><span class="tab on">Été 2027</span><span class="tab">Périscolaire</span><span class="tab">Mini-camps</span></div>
+      <div class="offer">
+        <div class="top"><div class="ic" style="background:var(--mint-soft)">🏕️</div><div><h4>Animateur·rice colo</h4><div class="org">Les Pins Bleus · Landes</div></div></div>
+        <div class="chips"><span class="chip">📅 3 semaines</span><span class="chip">🎓 BAFA</span><span class="chip">6-14 ans</span></div>
+      </div>
+      <div class="offer">
+        <div class="top"><div class="ic" style="background:var(--sun-soft)">🌊</div><div><h4>Anim séjour mer</h4><div class="org">Cap Évasion · Bretagne</div></div></div>
+        <div class="chips"><span class="chip">📅 Juillet</span><span class="chip">🏊 SB apprécié</span><span class="dir">✔ Directeur</span></div>
+      </div>
+      <div class="offer">
+        <div class="top"><div class="ic" style="background:var(--coral-soft)">🎨</div><div><h4>Anim accueil de loisirs</h4><div class="org">ALSH Les Lucioles · Hérault</div></div></div>
+        <div class="chips"><span class="chip">📅 Mercredis</span><span class="chip">3-6 ans</span><span class="dir">✔ Directeur</span></div>
+      </div>
+      <div class="offer">
+        <div class="top"><div class="ic" style="background:var(--violet-soft)">⛰️</div><div><h4>Anim séjour montagne</h4><div class="org">Altitude Jeunes · Alpes</div></div></div>
+        <div class="chips"><span class="chip">📅 Août</span><span class="chip">🎓 BAFA</span></div>
+      </div>
+      <div class="nav"><div>🏠</div><div class="on">🔎</div><div class="plus">+</div><div>🧳</div><div>👤</div></div>
+    </div>
+  </div>
+</body>
+</html>

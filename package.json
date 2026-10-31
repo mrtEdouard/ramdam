@@ -5,7 +5,7 @@
   "scripts": {
     "dev:api": "pnpm --filter @ramdam/api start:dev",
     "dev:mobile": "pnpm --filter @ramdam/mobile start",
-    "generate": "pnpm --filter @ramdam/shared build && pnpm --filter @ramdam/api exec prisma generate",
+    "generate": "pnpm --filter @ramdam/shared build && pnpm --filter @ramdam/api exec prisma generate && pnpm --filter @ramdam/mobile exec setup-skia-web public",
     "build": "pnpm -r build",
     "lint": "pnpm -r lint",
     "test": "pnpm -r test",
@@ -13,7 +13,8 @@
     "format:check": "prettier --check .",
     "db:up": "docker compose up -d",
     "db:down": "docker compose down",
-    "db:init": "cat database/01_schema.sql database/02_jeu_essai.sql | docker compose exec -T postgres sh -c 'psql -q -U \"$POSTGRES_USER\" -d \"$POSTGRES_DB\" -v ON_ERROR_STOP=1'"
+    "db:init": "cat database/01_schema.sql database/02_jeu_essai.sql | docker compose exec -T postgres sh -c 'psql -q -U \"$POSTGRES_USER\" -d \"$POSTGRES_DB\" -v ON_ERROR_STOP=1'",
+    "xp": "node scripts/ajouter-xp.mjs"
   },
   "devDependencies": {
     "prettier": "^3.3.3"
