@@ -47,3 +47,16 @@ export function periode(debut: Date, fin: Date) {
   const { mois: moisFin } = jourEtMois(fin);
   return `du ${debut.getDate()} ${moisDebut} au ${fin.getDate()} ${moisFin}`;
 }
+
+// « oct. 2026 »
+export function moisEtAnnee(date: Date) {
+  return `${moisCourts[date.getMonth()]} ${date.getFullYear()}`;
+}
+
+// Compteur façon réseau social : 950 → « 950 », 1 240 → « 1,2 k », 18 600 → « 18,6 k ».
+export function compteur(nombre: number) {
+  if (nombre < 1000) {
+    return String(nombre);
+  }
+  return `${(nombre / 1000).toFixed(1).replace('.', ',').replace(',0', '')} k`;
+}

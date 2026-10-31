@@ -16,14 +16,24 @@ type CorpsErreur = {
   erreurs?: { champ: string; message: string }[];
 };
 
-export async function envoyer<T>(chemin: string, corps: unknown): Promise<T> {
+// POST avec un corps JSON (inscription, connexion...).
+export function envoyer<T>(chemin: string, corps: unknown): Promise<T> {
+  return requete<T>(chemin, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(corps),
+  });
+}
+
+// GET d'une route protégée : le jeton prouve à l'API qui fait la demande (JwtAuthGuard).
+export function lire<T>(chemin: string, jeton: string): Promise<T> {
+  return requete<T>(chemin, { headers: { Authorization: `Bearer ${jeton}` } });
+}
+
+async function requete<T>(chemin: string, options: RequestInit): Promise<T> {
   let reponse: Response;
   try {
-    reponse = await fetch(`${URL_API}${chemin}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(corps),
-    });
+    reponse = await fetch(`${URL_API}${chemin}`, options);
   } catch {
     // fetch échoue seulement si le serveur est injoignable (pas de réseau, mauvaise adresse).
     throw new ErreurApi(0, 'Impossible de joindre le serveur. Vérifie ta connexion.');
