@@ -87,7 +87,15 @@ async function requete<T>(chemin: string, options: RequestInit): Promise<T> {
     throw new ErreurApi(0, 'Impossible de joindre le serveur. Vérifie ta connexion.');
   }
 
-  const donnees = await reponse.json().catch(() => ({}));
+  // Une réponse sans contenu (204, ou « null » renvoyé par l'API) donne null, pas un objet vide :
+  // sinon l'écran croirait avoir reçu une fiche, sans titre ni auteur.
+  const texte = await reponse.text();
+  let donnees: unknown = null;
+  try {
+    donnees = texte ? JSON.parse(texte) : null;
+  } catch {
+    // Réponse qui n'est pas du JSON (page d'erreur d'un proxy, par exemple) : traitée comme vide.
+  }
   if (reponse.ok) {
     return donnees as T;
   }
@@ -95,7 +103,7 @@ async function requete<T>(chemin: string, options: RequestInit): Promise<T> {
   if (reponse.status === 429) {
     throw new ErreurApi(429, 'Trop de tentatives. Réessaie dans une minute.');
   }
-  const { message, erreurs = [] } = donnees as CorpsErreur;
+  const { message, erreurs = [] } = (donnees ?? {}) as CorpsErreur;
   const champs: Record<string, string> = {};
   for (const erreur of erreurs) {
     champs[erreur.champ] ??= erreur.message;
