@@ -1,25 +1,31 @@
 // Applique les migrations SQL de database/migrations qui ne l'ont pas encore été.
 // Usage : pnpm db:migrer
+// Sur le serveur : MIGRER_PSQL="sudo -u postgres psql -d ramdam" node scripts/migrer.mjs
 //
 // Chaque fichier est exécuté dans une transaction (tout ou rien), puis son nom est noté dans la
 // table migration_appliquee : relancer la commande n'applique jamais deux fois la même migration.
 import { spawnSync } from 'node:child_process';
 import { readdirSync, readFileSync } from 'node:fs';
 
+// En local, psql tourne dans le conteneur Docker. Sur le serveur, PostgreSQL est installé
+// directement : MIGRER_PSQL donne la commande à utiliser (ex. « sudo -u postgres psql -d ramdam »).
 function psql(sql, options = []) {
-  const resultat = spawnSync(
-    'docker',
-    [
-      'compose',
-      'exec',
-      '-T',
-      'postgres',
-      'sh',
-      '-c',
-      `psql -q -t -A -v ON_ERROR_STOP=1 ${options.join(' ')} -U "$POSTGRES_USER" -d "$POSTGRES_DB"`,
-    ],
-    { input: sql, encoding: 'utf8' },
-  );
+  const drapeaux = `-q -t -A -v ON_ERROR_STOP=1 ${options.join(' ')}`;
+  const [commande, args] = process.env.MIGRER_PSQL
+    ? ['sh', ['-c', `${process.env.MIGRER_PSQL} ${drapeaux}`]]
+    : [
+        'docker',
+        [
+          'compose',
+          'exec',
+          '-T',
+          'postgres',
+          'sh',
+          '-c',
+          `psql ${drapeaux} -U "$POSTGRES_USER" -d "$POSTGRES_DB"`,
+        ],
+      ];
+  const resultat = spawnSync(commande, args, { input: sql, encoding: 'utf8' });
   if (resultat.status !== 0) {
     throw new Error(resultat.stderr || 'La base ne répond pas : lance « pnpm db:up ».');
   }
