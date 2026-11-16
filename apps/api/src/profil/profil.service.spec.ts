@@ -3,8 +3,9 @@ import type { PrismaService } from '../prisma/prisma.service.js';
 import { ProfilService } from './profil.service.js';
 
 const prisma = {
-  utilisateur: { findUnique: vi.fn() },
-  fiche: { count: vi.fn() },
+  utilisateur: { findUnique: vi.fn(), findMany: vi.fn() },
+  fiche: { count: vi.fn(), findMany: vi.fn() },
+  historique_xp: { findMany: vi.fn() },
   aimer: { count: vi.fn() },
 };
 const service = new ProfilService(prisma as unknown as PrismaService);
@@ -56,5 +57,56 @@ describe('ProfilService.trouver', () => {
   it('cache le profil d’un compte suspendu', async () => {
     prisma.utilisateur.findUnique.mockResolvedValue({ ...lea, statut: 'SUSPENDU' });
     await expect(service.trouver({ pseudo: 'lea.anim' })).rejects.toThrow(NotFoundException);
+  });
+});
+
+describe('ProfilService.historiqueXp', () => {
+  it('renvoie les 5 derniers gains du compte, avec la fiche et la personne qui a agi', async () => {
+    prisma.historique_xp.findMany.mockResolvedValue([
+      {
+        id: 12n,
+        action: 'FICHE_AIMEE',
+        points: 2,
+        source_id: 'id-fiche',
+        declencheur_id: 'id-karim',
+        gagne_le: new Date('2026-11-16T10:00:00Z'),
+      },
+      {
+        id: 11n,
+        action: 'FICHE_PUBLIEE',
+        points: 50,
+        source_id: 'id-fiche',
+        declencheur_id: lea.id,
+        gagne_le: new Date('2026-11-15T10:00:00Z'),
+      },
+    ]);
+    prisma.fiche.findMany.mockResolvedValue([{ id: 'id-fiche', titre: 'Béret express' }]);
+    prisma.utilisateur.findMany.mockResolvedValue([{ id: 'id-karim', pseudo: 'karim' }]);
+
+    const historique = await service.historiqueXp(lea.id);
+
+    expect(prisma.historique_xp.findMany).toHaveBeenCalledWith({
+      where: { utilisateur_id: lea.id },
+      orderBy: { gagne_le: 'desc' },
+      take: 5,
+    });
+    expect(historique).toEqual([
+      {
+        id: '12',
+        action: 'FICHE_AIMEE',
+        points: 2,
+        gagneLe: '2026-11-16T10:00:00.000Z',
+        fiche: { id: 'id-fiche', titre: 'Béret express' },
+        par: 'karim',
+      },
+      {
+        id: '11',
+        action: 'FICHE_PUBLIEE',
+        points: 50,
+        gagneLe: '2026-11-15T10:00:00.000Z',
+        fiche: { id: 'id-fiche', titre: 'Béret express' },
+        par: null, // gagné par soi-même
+      },
+    ]);
   });
 });

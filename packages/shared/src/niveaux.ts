@@ -36,3 +36,36 @@ export type Profil = {
   fichesPubliees: number;
   aimesRecus: number;
 };
+
+// Un gain d'XP de l'historique, renvoyé par GET /profils/moi/historique-xp (privé).
+export type ActionXp =
+  'FICHE_PUBLIEE' | 'FICHE_EN_MALLE' | 'FICHE_AIMEE' | 'FICHE_AIMEE_DONNEE' | 'COMMENTAIRE_PUBLIE';
+
+export type MouvementXp = {
+  id: string;
+  action: ActionXp;
+  points: number;
+  gagneLe: string;
+  // La fiche concernée (absente pour un commentaire ou une fiche supprimée).
+  fiche: { id: string; titre: string } | null;
+  // La personne qui a déclenché le gain, si ce n'est pas soi-même.
+  par: string | null;
+};
+
+// Traduit un gain en phrase lisible : « lea.anim a aimé « Béret express » ».
+export function raisonXp(mouvement: MouvementXp): string {
+  const fiche = mouvement.fiche ? `« ${mouvement.fiche.titre} »` : 'une fiche';
+  const quelquUn = mouvement.par ?? 'Quelqu’un';
+  switch (mouvement.action) {
+    case 'FICHE_PUBLIEE':
+      return `Tu as publié ${fiche}`;
+    case 'FICHE_AIMEE':
+      return `${quelquUn} a aimé ${fiche}`;
+    case 'FICHE_EN_MALLE':
+      return `${quelquUn} a gardé ${fiche} dans sa Malle`;
+    case 'FICHE_AIMEE_DONNEE':
+      return `Tu as aimé ${fiche}`;
+    case 'COMMENTAIRE_PUBLIE':
+      return 'Tu as commenté une fiche';
+  }
+}

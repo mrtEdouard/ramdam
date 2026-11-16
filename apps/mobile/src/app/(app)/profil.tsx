@@ -1,4 +1,4 @@
-import { niveauPour, niveaux, type Profil } from '@ramdam/shared';
+import { niveauPour, niveaux, raisonXp, type MouvementXp, type Profil } from '@ramdam/shared';
 import { useFocusEffect } from 'expo-router';
 import { Check, ChevronDown, ChevronUp, Info, Lock, LogOut, X } from 'lucide-react-native';
 import { useCallback, useState } from 'react';
@@ -9,6 +9,7 @@ import { Embleme } from '@/components/embleme';
 import { MessageErreur } from '@/components/message-erreur';
 import { couleurs, polices } from '@/constants/theme';
 import { ErreurApi, lire } from '@/lib/api';
+import { depuis } from '@/lib/format';
 import { useSession } from '@/session/session-context';
 
 // Les gains d'XP fixés par les triggers de la base (database/01_schema.sql).
@@ -23,6 +24,7 @@ const gainsXp = [
 export default function PageProfil() {
   const { session, deconnecter } = useSession();
   const [profil, setProfil] = useState<Profil | null>(null);
+  const [historique, setHistorique] = useState<MouvementXp[]>([]);
   const [erreur, setErreur] = useState<string | null>(null);
   const [baremeVisible, setBaremeVisible] = useState(false);
   const [niveauxVisibles, setNiveauxVisibles] = useState(false);
@@ -46,6 +48,10 @@ export default function PageProfil() {
           }
           setErreur(e instanceof ErreurApi ? e.message : 'Impossible de charger le profil.');
         });
+      // L'historique est privé : la route ne renvoie que celui du compte connecté.
+      lire<MouvementXp[]>('/profils/moi/historique-xp', session.jeton)
+        .then(setHistorique)
+        .catch(() => setHistorique([]));
     }, [session, deconnecter]),
   );
 
@@ -184,6 +190,28 @@ export default function PageProfil() {
         )}
       </Pressable>
 
+      <View style={styles.carte}>
+        <Text style={styles.titreHistorique} accessibilityRole="header">
+          Derniers gains d’XP
+        </Text>
+        {historique.length === 0 ? (
+          <Text style={styles.seuil}>Pas encore d’XP gagnée : publie ou aime une fiche !</Text>
+        ) : (
+          historique.map((mouvement, position) => (
+            <View key={mouvement.id}>
+              {position > 0 && <View style={styles.separateur} />}
+              <View style={styles.ligneHistorique}>
+                <View style={styles.textesNiveau}>
+                  <Text style={styles.raison}>{raisonXp(mouvement)}</Text>
+                  <Text style={styles.seuil}>{depuis(new Date(mouvement.gagneLe))}</Text>
+                </View>
+                <Text style={styles.gain}>+{mouvement.points} XP</Text>
+              </View>
+            </View>
+          ))
+        )}
+      </View>
+
       <Pressable onPress={deconnecter} style={styles.deconnexion} accessibilityRole="button">
         <LogOut size={20} color={couleurs.erreur} strokeWidth={2} />
         <Text style={styles.texteDeconnexion}>Se déconnecter</Text>
@@ -254,6 +282,16 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: couleurs.surface,
   },
+  titreHistorique: {
+    marginBottom: 8,
+    fontFamily: polices.titre,
+    fontSize: 18,
+    letterSpacing: -0.3,
+    color: couleurs.encre,
+  },
+  ligneHistorique: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 6 },
+  raison: { fontFamily: polices.texte, fontSize: 15, color: couleurs.encre },
+  gain: { fontFamily: polices.texteGras, fontSize: 15, color: couleurs.corail },
   separateur: { height: 1, marginVertical: 6, backgroundColor: couleurs.trait },
   boutonInfo: { position: 'absolute', top: 14, right: 14, padding: 4 },
   // Panneau du barème, posé sur toute la carte sombre.

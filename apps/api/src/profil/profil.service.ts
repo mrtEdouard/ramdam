@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import type { Profil } from '@ramdam/shared';
+import type { MouvementXp, Profil } from '@ramdam/shared';
 import type { Prisma } from '../generated/prisma/client.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 
@@ -33,5 +33,39 @@ export class ProfilService {
       fichesPubliees: nbFiches,
       aimesRecus: nbAimes,
     };
+  }
+
+  // Les 5 derniers gains d'XP de l'utilisateur connecté (écrits par les triggers de la base).
+  async historiqueXp(utilisateurId: string): Promise<MouvementXp[]> {
+    const lignes = await this.prisma.historique_xp.findMany({
+      where: { utilisateur_id: utilisateurId },
+      orderBy: { gagne_le: 'desc' },
+      take: 5,
+    });
+
+    // Dans l'historique, source_id est la fiche concernée (ou le commentaire) et
+    // declencheur_id la personne qui a agi. On récupère titres et pseudos en deux requêtes.
+    const [fiches, personnes] = await Promise.all([
+      this.prisma.fiche.findMany({
+        where: { id: { in: lignes.map((ligne) => ligne.source_id) } },
+        select: { id: true, titre: true },
+      }),
+      this.prisma.utilisateur.findMany({
+        where: { id: { in: lignes.map((ligne) => ligne.declencheur_id) } },
+        select: { id: true, pseudo: true },
+      }),
+    ]);
+
+    return lignes.map((ligne) => ({
+      id: ligne.id.toString(), // bigint : converti en texte pour le JSON
+      action: ligne.action,
+      points: ligne.points,
+      gagneLe: ligne.gagne_le.toISOString(),
+      fiche: fiches.find((fiche) => fiche.id === ligne.source_id) ?? null,
+      par:
+        ligne.declencheur_id === utilisateurId
+          ? null
+          : (personnes.find((personne) => personne.id === ligne.declencheur_id)?.pseudo ?? null),
+    }));
   }
 }
