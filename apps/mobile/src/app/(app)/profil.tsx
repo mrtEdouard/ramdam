@@ -29,6 +29,7 @@ const gainsXp = [
   { action: 'Ta fiche est ajoutée à une Malle', points: 10 },
   { action: 'Commenter une fiche', points: 5 },
   { action: 'Ta fiche reçoit un « j’aime »', points: 2 },
+  { action: 'Aimer la fiche d’un autre (10 fois par jour)', points: 1 },
 ];
 
 export default function PageProfil() {

@@ -13,13 +13,16 @@ export class ReactionsService {
 
   async aimer(id: string, utilisateur: UtilisateurJwt): Promise<EtatAime> {
     await this.ficheDUnAutre(id, utilisateur, 'Tu ne peux pas aimer ta propre fiche');
+    // Le trigger de la base décide du gain (RG-23) : on compare l'XP avant et après pour l'annoncer.
+    const avant = await this.xpDe(utilisateur);
     // upsert : aimer deux fois ne crée pas de doublon (RG-12) et ne renvoie pas d'erreur.
     await this.prisma.aimer.upsert({
       where: cle(id, utilisateur),
       create: { utilisateur_id: utilisateur.sub, fiche_id: id },
       update: {},
     });
-    return this.etatAime(id, true);
+    const xpGagne = (await this.xpDe(utilisateur)) - avant;
+    return { ...(await this.etatAime(id, true)), xpGagne };
   }
 
   async retirerAime(id: string, utilisateur: UtilisateurJwt): Promise<EtatAime> {
@@ -27,7 +30,7 @@ export class ReactionsService {
     await this.prisma.aimer.deleteMany({
       where: { utilisateur_id: utilisateur.sub, fiche_id: id },
     });
-    return this.etatAime(id, false);
+    return { ...(await this.etatAime(id, false)), xpGagne: 0 };
   }
 
   async garder(id: string, utilisateur: UtilisateurJwt) {
@@ -71,7 +74,15 @@ export class ReactionsService {
     }
   }
 
-  private async etatAime(id: string, aimeeParMoi: boolean): Promise<EtatAime> {
+  private async xpDe(utilisateur: UtilisateurJwt) {
+    const ligne = await this.prisma.utilisateur.findUnique({
+      where: { id: utilisateur.sub },
+      select: { xp: true },
+    });
+    return ligne?.xp ?? 0;
+  }
+
+  private async etatAime(id: string, aimeeParMoi: boolean): Promise<Omit<EtatAime, 'xpGagne'>> {
     return { aimes: await this.prisma.aimer.count({ where: { fiche_id: id } }), aimeeParMoi };
   }
 }

@@ -52,10 +52,6 @@ export default function Connexion() {
     <EcranAuth
       titre="Te revoilà"
       intro="Connecte-toi pour retrouver tes fiches et ta Malle."
-      photo={{
-        source: require('@/assets/images/photos/veillee.jpg'),
-        credit: 'Smiley.toerist, CC BY-SA 3.0',
-      }}
       pied={
         <Text style={texte.courant}>
           Pas encore de compte ?{' '}

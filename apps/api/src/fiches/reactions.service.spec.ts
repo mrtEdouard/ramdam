@@ -5,6 +5,7 @@ import { ReactionsService } from './reactions.service.js';
 
 const prisma = {
   fiche: { findUnique: vi.fn() },
+  utilisateur: { findUnique: vi.fn() },
   aimer: { upsert: vi.fn(), deleteMany: vi.fn(), count: vi.fn() },
   favori: { upsert: vi.fn(), deleteMany: vi.fn(), findMany: vi.fn() },
 };
@@ -17,13 +18,18 @@ const ficheDeLea = { id: 'id-fiche', auteur_id: 'id-lea', statut: 'PUBLIEE' };
 beforeEach(() => vi.resetAllMocks());
 
 describe("« J'aime »", () => {
-  it("aime la fiche d'un autre et renvoie le nouveau total", async () => {
+  it("aime la fiche d'un autre et renvoie le nouveau total et l'XP gagnée", async () => {
     prisma.fiche.findUnique.mockResolvedValue(ficheDeLea);
     prisma.aimer.count.mockResolvedValue(4);
+    // XP de Karim avant puis après : le trigger de la base lui a donné 1 XP (RG-23).
+    prisma.utilisateur.findUnique
+      .mockResolvedValueOnce({ xp: 40 })
+      .mockResolvedValueOnce({ xp: 41 });
 
     await expect(service.aimer('id-fiche', karim)).resolves.toEqual({
       aimes: 4,
       aimeeParMoi: true,
+      xpGagne: 1,
     });
     expect(prisma.aimer.upsert.mock.calls[0][0].create).toEqual({
       utilisateur_id: 'id-karim',
@@ -47,6 +53,7 @@ describe("« J'aime »", () => {
     await expect(service.retirerAime('id-fiche', karim)).resolves.toEqual({
       aimes: 3,
       aimeeParMoi: false,
+      xpGagne: 0,
     });
     expect(prisma.aimer.deleteMany).toHaveBeenCalledWith({
       where: { utilisateur_id: 'id-karim', fiche_id: 'id-fiche' },

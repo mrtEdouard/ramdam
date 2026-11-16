@@ -16,6 +16,7 @@ import { Avatar } from '@/components/avatar';
 import { Bouton } from '@/components/bouton';
 import { MessageErreur } from '@/components/message-erreur';
 import { couleurs, polices } from '@/constants/theme';
+import { useToast } from '@/components/toast';
 import { useRequete } from '@/hooks/use-requete';
 import { appeler, ErreurApi } from '@/lib/api';
 import { confirmer } from '@/lib/confirmer';
@@ -32,6 +33,7 @@ export default function DetailFiche() {
   // les valeurs de la fiche chargée, sans avoir à la recharger en entier.
   const [etatAime, setEtatAime] = useState<EtatAime | null>(null);
   const [dansLaMalle, setDansLaMalle] = useState<boolean | null>(null);
+  const afficherToast = useToast();
   const [erreurAction, setErreurAction] = useState<string | null>(null);
   // Photo de la galerie affichée en grand, ou null.
   const [photoOuverte, setPhotoOuverte] = useState<string | null>(null);
@@ -94,16 +96,18 @@ export default function DetailFiche() {
   // Le bouton change tout de suite (mise à jour « optimiste ») ; si l'API refuse,
   // on revient à l'état précédent et on affiche le message.
   async function basculerAime() {
-    const precedent = { aimes, aimeeParMoi };
-    setEtatAime({ aimes: aimes + (aimeeParMoi ? -1 : 1), aimeeParMoi: !aimeeParMoi });
+    const precedent = { aimes, aimeeParMoi, xpGagne: 0 };
+    setEtatAime({ aimes: aimes + (aimeeParMoi ? -1 : 1), aimeeParMoi: !aimeeParMoi, xpGagne: 0 });
     try {
-      setEtatAime(
-        await appeler<EtatAime>(
-          aimeeParMoi ? 'DELETE' : 'PUT',
-          `/fiches/${id}/aime`,
-          session!.jeton,
-        ),
+      const etat = await appeler<EtatAime>(
+        aimeeParMoi ? 'DELETE' : 'PUT',
+        `/fiches/${id}/aime`,
+        session!.jeton,
       );
+      setEtatAime(etat);
+      if (etat.xpGagne > 0) {
+        afficherToast(`+${etat.xpGagne} XP pour avoir aimé cette fiche`);
+      }
     } catch (e) {
       setEtatAime(precedent);
       setErreurAction(

@@ -1,12 +1,13 @@
 import { Tabs } from 'expo-router';
-import { BarreOnglets } from '@/components/barre-onglets';
 import { couleurs } from '@/constants/theme';
 
-// Les quatre onglets principaux, avec notre propre barre de navigation.
+// Les quatre onglets principaux. Leur barre est dessinée une seule fois pour toute l'app,
+// dans app/(app)/_layout.tsx : le navigateur d'onglets n'en affiche donc pas.
 export default function LayoutOnglets() {
   return (
     <Tabs
-      tabBar={(props) => <BarreOnglets {...props} />}
+      tabBar={() => null}
+      backBehavior="history"
       screenOptions={{ headerShown: false, sceneStyle: { backgroundColor: couleurs.fond } }}
     >
       <Tabs.Screen name="index" />

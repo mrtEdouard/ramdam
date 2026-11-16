@@ -14,14 +14,12 @@ import { texte } from '@/constants/styles-communs';
 import { couleurs, polices } from '@/constants/theme';
 import { ErreurApi } from '@/lib/api';
 import { erreursDuFormulaire } from '@/lib/validation';
-import { useEcranLarge } from '@/hooks/use-ecran-large';
 import { useSession } from '@/session/session-context';
 
 type Champ = keyof InscriptionDto;
 
 export default function Inscription() {
   const { inscrire } = useSession();
-  const ecranLarge = useEcranLarge();
   const [valeurs, setValeurs] = useState({
     email: '',
     pseudo: '',
@@ -86,10 +84,6 @@ export default function Inscription() {
     <EcranAuth
       titre="Créer un compte"
       intro="Partage tes activités et trouve ta prochaine équipe d'anim."
-      photo={{
-        source: require('@/assets/images/photos/fresque.jpg'),
-        credit: 'Yann, CC BY-SA 4.0',
-      }}
       pied={
         <Text style={texte.courant}>
           Déjà inscrit ?{' '}
@@ -99,9 +93,8 @@ export default function Inscription() {
         </Text>
       }
     >
-      {/* Sur grand écran, email et pseudo côte à côte pour que tout tienne sans défilement. */}
-      <View style={ecranLarge ? styles.ligne : styles.groupeChamps}>
-        <View style={ecranLarge && styles.moitie}>
+      <View style={styles.groupeChamps}>
+        <View>
           <ChampTexte
             libelle="Email"
             icone={Mail}
@@ -120,7 +113,7 @@ export default function Inscription() {
             onSubmitEditing={() => champPseudo.current?.focus()}
           />
         </View>
-        <View style={ecranLarge && styles.moitie}>
+        <View>
           <ChampTexte
             ref={champPseudo}
             libelle="Pseudo"
@@ -206,8 +199,6 @@ export default function Inscription() {
 const styles = StyleSheet.create({
   groupe: { gap: 8 },
   groupeChamps: { gap: 20 },
-  ligne: { flexDirection: 'row', gap: 12 },
-  moitie: { flex: 1 },
   libelle: { fontFamily: polices.texteGras, fontSize: 15, color: couleurs.encre },
   cartes: { flexDirection: 'row', gap: 12 },
   gras: { fontFamily: polices.texteMoyen, color: couleurs.encre },

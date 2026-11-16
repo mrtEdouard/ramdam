@@ -221,6 +221,7 @@ enum action_xp {
   FICHE_EN_MALLE
   FICHE_AIMEE
   COMMENTAIRE_PUBLIE
+  FICHE_AIMEE_DONNEE
 }
 
 enum role_utilisateur {

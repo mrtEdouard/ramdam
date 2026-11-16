@@ -78,6 +78,27 @@ SELECT pg_temp.doit_echouer('Plus de 30 mots de matériel',
      VALUES ('00000000-0000-0000-0000-000000000004', 'x', 'JEU', 6, 10, 30, 'x',
              array_fill('plot'::text, ARRAY[31]))$q$);
 
+-- RG-23 : aimer la fiche d'un autre rapporte +1 XP, une seule fois par fiche
+DO $$
+DECLARE
+  avant integer;
+  apres integer;
+BEGIN
+  SELECT xp INTO avant FROM utilisateur WHERE id = '00000000-0000-0000-0000-000000000007';
+  INSERT INTO aimer (utilisateur_id, fiche_id)
+    VALUES ('00000000-0000-0000-0000-000000000007', '10000000-0000-0000-0000-000000000005');
+  DELETE FROM aimer WHERE utilisateur_id = '00000000-0000-0000-0000-000000000007'
+    AND fiche_id = '10000000-0000-0000-0000-000000000005';
+  INSERT INTO aimer (utilisateur_id, fiche_id)
+    VALUES ('00000000-0000-0000-0000-000000000007', '10000000-0000-0000-0000-000000000005');
+  SELECT xp INTO apres FROM utilisateur WHERE id = '00000000-0000-0000-0000-000000000007';
+  IF apres - avant <> 1 THEN
+    RAISE EXCEPTION 'ÉCHEC RG-23 : % XP gagnés au lieu de 1', apres - avant;
+  END IF;
+  RAISE NOTICE 'OK RG-23 aimer rapporte 1 XP, une seule fois par fiche';
+END;
+$$;
+
 -- RG-17 et RG-18 : XP attribuée une seule fois, même après un like retiré puis remis
 DO $$
 DECLARE

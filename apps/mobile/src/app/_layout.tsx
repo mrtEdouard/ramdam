@@ -4,7 +4,9 @@ import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
+import { useEffect, type ReactNode } from 'react';
+import { Platform, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { ToastProvider } from '@/components/toast';
 import { couleurs } from '@/constants/theme';
 import { SessionProvider, useSession } from '@/session/session-context';
 
@@ -20,10 +22,14 @@ export default function LayoutRacine() {
   });
 
   return (
-    <SessionProvider>
-      <StatusBar style="dark" />
-      <Navigation pret={policesChargees || erreurPolices !== null} />
-    </SessionProvider>
+    <CadreTelephone>
+      <SessionProvider>
+        <ToastProvider>
+          <StatusBar style="dark" />
+          <Navigation pret={policesChargees || erreurPolices !== null} />
+        </ToastProvider>
+      </SessionProvider>
+    </CadreTelephone>
   );
 }
 
@@ -55,3 +61,36 @@ function Navigation({ pret }: { pret: boolean }) {
     </Stack>
   );
 }
+
+// Ramdam est une app de téléphone : sur un écran d'ordinateur, elle s'affiche au centre,
+// dans un cadre de la taille d'un téléphone, au lieu de s'étirer sur toute la largeur.
+function CadreTelephone({ children }: { children: ReactNode }) {
+  const { width } = useWindowDimensions();
+  if (Platform.OS !== 'web' || width <= 500) {
+    return children;
+  }
+  return (
+    <View style={styles.bureau}>
+      <View style={styles.telephone}>{children}</View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  bureau: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
+    backgroundColor: '#E9E4DC',
+  },
+  telephone: {
+    width: 430,
+    height: '100%',
+    maxHeight: 932,
+    borderRadius: 36,
+    overflow: 'hidden',
+    backgroundColor: couleurs.fond,
+    boxShadow: '0 30px 80px rgba(28, 26, 51, 0.25)',
+  },
+});

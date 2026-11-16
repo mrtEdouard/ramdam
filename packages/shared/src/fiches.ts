@@ -158,7 +158,8 @@ export type FicheDetail = FicheResume & {
 };
 
 // Réponse après avoir aimé ou retiré son « j'aime ».
-export type EtatAime = { aimes: number; aimeeParMoi: boolean };
+// xpGagne : XP gagnée par celui qui aime (RG-23), 0 s'il l'a déjà eue ou si sa limite du jour est atteinte.
+export type EtatAime = { aimes: number; aimeeParMoi: boolean; xpGagne: number };
 
 export type PhotoFiche = { id: string; url: string };
 

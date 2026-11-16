@@ -11,7 +11,6 @@ import {
   type TextInputProps,
 } from 'react-native';
 import { couleurs, polices } from '@/constants/theme';
-import { useEcranLarge } from '@/hooks/use-ecran-large';
 
 type Props = TextInputProps & {
   libelle: string;
@@ -36,17 +35,15 @@ export function ChampTexte({
 }: Props) {
   const [focus, setFocus] = useState(false);
   const [visible, setVisible] = useState(false);
-  const ecranLarge = useEcranLarge();
 
   const couleurBord = erreur ? couleurs.erreur : focus ? couleurs.encre : couleurs.trait;
 
   return (
-    <View style={[styles.champ, ecranLarge && styles.champCompact]}>
+    <View style={styles.champ}>
       <Text style={styles.libelle}>{libelle}</Text>
       <View
         style={[
           styles.boite,
-          ecranLarge && styles.boiteCompacte,
           props.multiline && styles.boiteMultiligne,
           { borderColor: couleurBord },
         ]}
@@ -102,8 +99,6 @@ export function ChampTexte({
 
 const styles = StyleSheet.create({
   champ: { gap: 8 },
-  // Sur grand écran, le formulaire doit tenir sans défilement : champs un peu plus bas.
-  champCompact: { gap: 6 },
   libelle: { fontFamily: polices.texteGras, fontSize: 15, color: couleurs.encre },
   boite: {
     flexDirection: 'row',
@@ -126,7 +121,6 @@ const styles = StyleSheet.create({
     // Sur le web, la bordure change déjà de couleur au focus : on retire le contour du navigateur.
     outlineWidth: 0,
   },
-  boiteCompacte: { minHeight: 46 },
   // Champ de plusieurs lignes (déroulement d'une fiche) : le texte part du haut.
   boiteMultiligne: { minHeight: 120, alignItems: 'flex-start', paddingVertical: 12 },
   saisieMultiligne: { minHeight: 96, textAlignVertical: 'top' },
