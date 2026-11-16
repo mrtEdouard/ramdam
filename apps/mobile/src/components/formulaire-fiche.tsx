@@ -23,6 +23,7 @@ import { Puce } from '@/components/puce';
 import { couleurs, polices } from '@/constants/theme';
 import { appeler, envoyerPhoto, ErreurApi } from '@/lib/api';
 import { adresseImage } from '@/lib/images';
+import { preparerPhoto } from '@/lib/photos';
 import { erreursDuFormulaire } from '@/lib/validation';
 import { useSession } from '@/session/session-context';
 
@@ -43,8 +44,8 @@ type Saisie = {
 };
 type Champ = keyof Saisie;
 
-// Couverture : celle déjà enregistrée, une nouvelle photo choisie, ou aucune.
-type Couverture = { url: string } | { photo: ImagePicker.ImagePickerAsset } | null;
+// Couverture : celle déjà enregistrée, une nouvelle photo choisie (convertie en JPEG), ou aucune.
+type Couverture = { url: string } | { locale: string } | null;
 
 // Champ vide → null : Zod dira « obligatoire » pour un âge, ou retirera une limite facultative.
 const enNombre = (texte: string) => (texte.trim() === '' ? null : Number(texte.replace(',', '.')));
@@ -93,7 +94,7 @@ export function FormulaireFiche({ fiche, enregistrer, termine }: Props) {
   );
   // Galerie : photos déjà en ligne (on peut en retirer) et nouvelles photos à envoyer.
   const [photosGardees, setPhotosGardees] = useState<PhotoFiche[]>(fiche?.photos ?? []);
-  const [nouvellesPhotos, setNouvellesPhotos] = useState<ImagePicker.ImagePickerAsset[]>([]);
+  const [nouvellesPhotos, setNouvellesPhotos] = useState<string[]>([]);
 
   const [champsQuittes, setChampsQuittes] = useState<Partial<Record<Champ, boolean>>>({});
   const [soumis, setSoumis] = useState(false);
@@ -144,7 +145,11 @@ export function FormulaireFiche({ fiche, enregistrer, termine }: Props) {
       quality: 0.85,
     });
     if (!choix.canceled) {
-      setCouverture({ photo: choix.assets[0] });
+      try {
+        setCouverture({ locale: await preparerPhoto(choix.assets[0]) });
+      } catch (e) {
+        setErreurGenerale((e as Error).message);
+      }
     }
   }
 
@@ -156,17 +161,22 @@ export function FormulaireFiche({ fiche, enregistrer, termine }: Props) {
       quality: 0.85,
     });
     if (!choix.canceled) {
-      setNouvellesPhotos(
-        [...nouvellesPhotos, ...choix.assets].slice(0, nouvellesPhotos.length + placesGalerie),
-      );
+      try {
+        const preparees = await Promise.all(
+          choix.assets.slice(0, placesGalerie).map(preparerPhoto),
+        );
+        setNouvellesPhotos([...nouvellesPhotos, ...preparees]);
+      } catch (e) {
+        setErreurGenerale((e as Error).message);
+      }
     }
   }
 
   // Après l'enregistrement des champs, on aligne les photos en ligne sur ce qui est affiché.
   async function synchroniserPhotos(id: string, jeton: string) {
     const ancienneCouverture = fiche?.imageUrl ?? null;
-    if (couverture && 'photo' in couverture) {
-      await envoyerPhoto('PUT', `/fiches/${id}/couverture`, jeton, couverture.photo);
+    if (couverture && 'locale' in couverture) {
+      await envoyerPhoto('PUT', `/fiches/${id}/couverture`, jeton, couverture.locale);
     } else if (!couverture && ancienneCouverture) {
       await appeler('DELETE', `/fiches/${id}/couverture`, jeton);
     }
@@ -219,7 +229,7 @@ export function FormulaireFiche({ fiche, enregistrer, termine }: Props) {
           <View>
             <Image
               source={
-                'url' in couverture ? adresseImage(couverture.url) : { uri: couverture.photo.uri }
+                'url' in couverture ? adresseImage(couverture.url) : { uri: couverture.locale }
               }
               style={styles.couverture}
               contentFit="cover"
@@ -371,8 +381,8 @@ export function FormulaireFiche({ fiche, enregistrer, termine }: Props) {
           ))}
           {nouvellesPhotos.map((photo) => (
             <Vignette
-              key={photo.uri}
-              source={{ uri: photo.uri }}
+              key={photo}
+              source={{ uri: photo }}
               retirer={() => setNouvellesPhotos(nouvellesPhotos.filter((p) => p !== photo))}
             />
           ))}

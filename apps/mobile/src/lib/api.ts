@@ -1,4 +1,3 @@
-import type { ImagePickerAsset } from 'expo-image-picker';
 import { Platform } from 'react-native';
 
 export const URL_API = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000';
@@ -50,24 +49,24 @@ export function appeler<T>(
   });
 }
 
-// Envoi d'une photo choisie dans la galerie du téléphone (multipart/form-data, champ « image »).
+// Envoi d'une photo JPEG préparée par preparerPhoto (multipart/form-data, champ « image »).
 export async function envoyerPhoto<T>(
   methode: 'POST' | 'PUT',
   chemin: string,
   jeton: string,
-  photo: ImagePickerAsset,
+  adresseLocale: string,
 ): Promise<T> {
   const formulaire = new FormData();
-  const nom = photo.fileName ?? 'photo.jpg';
   if (Platform.OS === 'web') {
-    // Sur le web, le sélecteur donne un vrai fichier du navigateur.
-    formulaire.append('image', photo.file ?? (await (await fetch(photo.uri)).blob()), nom);
+    // Sur le web, on relit la photo convertie pour obtenir un vrai fichier du navigateur.
+    const fichier = await (await fetch(adresseLocale)).blob();
+    formulaire.append('image', new Blob([fichier], { type: 'image/jpeg' }), 'photo.jpg');
   } else {
     // Sur téléphone, React Native lit le fichier à partir de son adresse locale.
     formulaire.append('image', {
-      uri: photo.uri,
-      name: nom,
-      type: photo.mimeType ?? 'image/jpeg',
+      uri: adresseLocale,
+      name: 'photo.jpg',
+      type: 'image/jpeg',
     } as unknown as Blob);
   }
   // Pas de Content-Type : fetch le calcule lui-même, avec la frontière entre les parties.
