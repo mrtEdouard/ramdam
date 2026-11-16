@@ -4,7 +4,6 @@
 set -euo pipefail
 cd /var/www/ramdam/app
 
-URL_PUBLIQUE="${URL_PUBLIQUE:-https://v2202609408683511116.supersrv.de}"
 
 echo "→ Dépendances"
 corepack enable
@@ -23,7 +22,9 @@ echo "→ Compilation de l'app web"
 # L'app est compilée dans un dossier à part, puis mise en place d'un coup :
 # les visiteurs ne voient jamais une version à moitié copiée.
 rm -rf /var/www/ramdam/web.nouveau
-EXPO_PUBLIC_API_URL="$URL_PUBLIQUE/api" pnpm --filter @ramdam/mobile exec \
+# L'app web appelle l'API par une adresse relative (/api) : elle fonctionne quelle que soit
+# l'adresse du site (nom de domaine, IP:8080, HTTP ou HTTPS), et sans CORS.
+EXPO_PUBLIC_API_URL=/api pnpm --filter @ramdam/mobile exec \
   expo export --platform web --output-dir /var/www/ramdam/web.nouveau
 cp apps/mobile/public/canvaskit.wasm /var/www/ramdam/web.nouveau/ 2>/dev/null || true
 rm -rf /var/www/ramdam/web.ancien
@@ -34,4 +35,4 @@ echo "→ Redémarrage de l'API"
 pm2 startOrReload deploiement/ecosystem.config.cjs
 pm2 save
 
-echo "✓ Ramdam déployé sur $URL_PUBLIQUE"
+echo "✓ Ramdam déployé"
