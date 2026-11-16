@@ -1,7 +1,7 @@
-import { libelleType, type FicheDetail } from '@ramdam/shared';
+import { libelleType, type EtatAime, type FicheDetail } from '@ramdam/shared';
 import { Image } from 'expo-image';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Clock, Heart, Smile, Users, X } from 'lucide-react-native';
+import { Bookmark, BookmarkCheck, Clock, Heart, Smile, Users, X } from 'lucide-react-native';
 import { useState, type ReactNode } from 'react';
 import {
   ActivityIndicator,
@@ -28,6 +28,10 @@ export default function DetailFiche() {
   const { session } = useSession();
   const { donnees: fiche, erreur, recharger } = useRequete<FicheDetail>(`/fiches/${id}`);
   const [action, setAction] = useState<'publier' | 'supprimer' | null>(null);
+  // Réponses de l'API après un « j'aime » ou un ajout à la Malle : elles remplacent
+  // les valeurs de la fiche chargée, sans avoir à la recharger en entier.
+  const [etatAime, setEtatAime] = useState<EtatAime | null>(null);
+  const [dansLaMalle, setDansLaMalle] = useState<boolean | null>(null);
   const [erreurAction, setErreurAction] = useState<string | null>(null);
   // Photo de la galerie affichée en grand, ou null.
   const [photoOuverte, setPhotoOuverte] = useState<string | null>(null);
@@ -83,6 +87,41 @@ export default function DetailFiche() {
     }
   }
 
+  const aimes = etatAime?.aimes ?? fiche.aimes;
+  const aimeeParMoi = etatAime?.aimeeParMoi ?? fiche.aimeeParMoi;
+  const dansMaMalle = dansLaMalle ?? fiche.dansMaMalle;
+
+  // Le bouton change tout de suite (mise à jour « optimiste ») ; si l'API refuse,
+  // on revient à l'état précédent et on affiche le message.
+  async function basculerAime() {
+    const precedent = { aimes, aimeeParMoi };
+    setEtatAime({ aimes: aimes + (aimeeParMoi ? -1 : 1), aimeeParMoi: !aimeeParMoi });
+    try {
+      setEtatAime(
+        await appeler<EtatAime>(
+          aimeeParMoi ? 'DELETE' : 'PUT',
+          `/fiches/${id}/aime`,
+          session!.jeton,
+        ),
+      );
+    } catch (e) {
+      setEtatAime(precedent);
+      setErreurAction(
+        e instanceof ErreurApi ? e.message : 'Impossible d’enregistrer ton « j’aime ».',
+      );
+    }
+  }
+
+  async function basculerMalle() {
+    setDansLaMalle(!dansMaMalle);
+    try {
+      await appeler(dansMaMalle ? 'DELETE' : 'PUT', `/fiches/${id}/malle`, session!.jeton);
+    } catch (e) {
+      setDansLaMalle(dansMaMalle);
+      setErreurAction(e instanceof ErreurApi ? e.message : 'Impossible de modifier ta Malle.');
+    }
+  }
+
   const participants =
     fiche.nbParticipantsMin && fiche.nbParticipantsMax
       ? `${fiche.nbParticipantsMin} à ${fiche.nbParticipantsMax}`
@@ -119,15 +158,54 @@ export default function DetailFiche() {
           {fiche.publieeLe && (
             <Text style={styles.date}>· {depuis(new Date(fiche.publieeLe))}</Text>
           )}
-          <View style={styles.aimes} accessibilityLabel={`${fiche.aimes} j'aime`}>
-            <Heart
-              size={18}
-              color={couleurs.corail}
-              fill={fiche.aimes > 0 ? couleurs.corail : 'none'}
-            />
-            <Text style={styles.nombreAimes}>{fiche.aimes}</Text>
-          </View>
+          {fiche.estAuteur && (
+            <View style={styles.aimes} accessibilityLabel={`${aimes} j'aime`}>
+              <Heart
+                size={18}
+                color={couleurs.corail}
+                fill={aimes > 0 ? couleurs.corail : 'none'}
+              />
+              <Text style={styles.nombreAimes}>{aimes}</Text>
+            </View>
+          )}
         </View>
+
+        {/* On aime et on garde les fiches des autres, pas les siennes. */}
+        {!fiche.estAuteur && (
+          <View style={styles.reactions}>
+            <Pressable
+              onPress={basculerAime}
+              style={[styles.reaction, aimeeParMoi && styles.reactionActive]}
+              accessibilityRole="button"
+              aria-selected={aimeeParMoi}
+              accessibilityLabel={`${aimeeParMoi ? 'Retirer mon j’aime' : 'J’aime'}, ${aimes} j’aime`}
+            >
+              <Heart
+                size={20}
+                color={couleurs.corail}
+                fill={aimeeParMoi ? couleurs.corail : 'none'}
+                strokeWidth={2}
+              />
+              <Text style={styles.texteReaction}>{aimes}</Text>
+            </Pressable>
+            <Pressable
+              onPress={basculerMalle}
+              style={[styles.reaction, styles.reactionMalle, dansMaMalle && styles.reactionActive]}
+              accessibilityRole="button"
+              aria-selected={dansMaMalle}
+            >
+              {dansMaMalle ? (
+                <BookmarkCheck size={20} color={couleurs.corail} strokeWidth={2} />
+              ) : (
+                <Bookmark size={20} color={couleurs.encre} strokeWidth={2} />
+              )}
+              <Text style={styles.texteReaction}>
+                {dansMaMalle ? 'Dans ma Malle' : 'Garder dans ma Malle'}
+              </Text>
+            </Pressable>
+          </View>
+        )}
+        {!fiche.estAuteur && erreurAction && <MessageErreur message={erreurAction} />}
 
         <View style={styles.infos}>
           <Info
@@ -329,6 +407,22 @@ const styles = StyleSheet.create({
   date: { fontFamily: polices.texte, fontSize: 14, color: couleurs.encre2 },
   aimes: { flexDirection: 'row', alignItems: 'center', gap: 5, marginLeft: 'auto' },
   nombreAimes: { fontFamily: polices.texteGras, fontSize: 15, color: couleurs.encre },
+  reactions: { flexDirection: 'row', gap: 10 },
+  reaction: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    minHeight: 48,
+    paddingHorizontal: 18,
+    borderRadius: 999,
+    borderWidth: 1.5,
+    borderColor: couleurs.trait,
+    backgroundColor: couleurs.surface,
+  },
+  reactionMalle: { flex: 1 },
+  reactionActive: { borderColor: couleurs.corail, backgroundColor: couleurs.corailDoux },
+  texteReaction: { fontFamily: polices.texteGras, fontSize: 15, color: couleurs.encre },
   infos: { flexDirection: 'row', gap: 10 },
   info: {
     flex: 1,

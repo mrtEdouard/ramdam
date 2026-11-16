@@ -152,7 +152,13 @@ export type FicheDetail = FicheResume & {
   deroulement: string;
   photos: PhotoFiche[];
   estAuteur: boolean;
+  // Pour la personne qui regarde la fiche : l'a-t-elle aimée, l'a-t-elle gardée dans sa Malle ?
+  aimeeParMoi: boolean;
+  dansMaMalle: boolean;
 };
+
+// Réponse après avoir aimé ou retiré son « j'aime ».
+export type EtatAime = { aimes: number; aimeeParMoi: boolean };
 
 export type PhotoFiche = { id: string; url: string };
 

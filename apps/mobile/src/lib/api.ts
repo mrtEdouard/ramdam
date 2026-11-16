@@ -32,9 +32,9 @@ export function lire<T>(chemin: string, jeton: string): Promise<T> {
   return appeler<T>('GET', chemin, jeton);
 }
 
-// Appel d'une route protégée avec n'importe quelle méthode (POST, PATCH, DELETE...).
+// Appel d'une route protégée avec n'importe quelle méthode (POST, PUT, PATCH, DELETE...).
 export function appeler<T>(
-  methode: 'GET' | 'POST' | 'PATCH' | 'DELETE',
+  methode: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE',
   chemin: string,
   jeton: string,
   corps?: unknown,

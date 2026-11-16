@@ -21,7 +21,7 @@ import { StockageImages } from '../images/stockage-images.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 
 // Champs lus pour chaque fiche : l'auteur et le nombre de « j'aime » viennent des tables liées.
-const AVEC_AUTEUR_ET_AIMES = {
+export const AVEC_AUTEUR_ET_AIMES = {
   utilisateur: { select: { pseudo: true } },
   _count: { select: { aimer: true } },
 } as const;
@@ -117,7 +117,15 @@ export class FichesService {
     if (!fiche || (fiche.statut !== 'PUBLIEE' && !estAuteur)) {
       throw new NotFoundException('Fiche introuvable');
     }
-    return versDetail(fiche, estAuteur);
+    const cle = { utilisateur_id_fiche_id: { utilisateur_id: utilisateur.sub, fiche_id: id } };
+    const [aime, favori] = await Promise.all([
+      this.prisma.aimer.findUnique({ where: cle }),
+      this.prisma.favori.findUnique({ where: cle }),
+    ]);
+    return versDetail(fiche, estAuteur, {
+      aimeeParMoi: aime !== null,
+      dansMaMalle: favori !== null,
+    });
   }
 
   async creer(dto: CreerFicheDto, utilisateur: UtilisateurJwt): Promise<FicheDetail> {
@@ -294,7 +302,7 @@ function versColonnes(dto: ModifierFicheDto) {
   };
 }
 
-function versResume(fiche: FicheLue): FicheResume {
+export function versResume(fiche: FicheLue): FicheResume {
   return {
     id: fiche.id,
     titre: fiche.titre,
@@ -311,7 +319,11 @@ function versResume(fiche: FicheLue): FicheResume {
   };
 }
 
-function versDetail(fiche: FicheDetaillee, estAuteur: boolean): FicheDetail {
+function versDetail(
+  fiche: FicheDetaillee,
+  estAuteur: boolean,
+  pourMoi = { aimeeParMoi: false, dansMaMalle: false },
+): FicheDetail {
   return {
     ...versResume(fiche),
     nbParticipantsMin: fiche.nb_participants_min,
@@ -321,5 +333,6 @@ function versDetail(fiche: FicheDetaillee, estAuteur: boolean): FicheDetail {
     deroulement: fiche.deroulement,
     photos: fiche.photo_fiche,
     estAuteur,
+    ...pourMoi,
   };
 }

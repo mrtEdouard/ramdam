@@ -13,6 +13,8 @@ const prisma = {
     update: vi.fn(),
     delete: vi.fn(),
   },
+  aimer: { findUnique: vi.fn() },
+  favori: { findUnique: vi.fn() },
   photo_fiche: {
     count: vi.fn(),
     create: vi.fn(),

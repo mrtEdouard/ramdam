@@ -28,12 +28,16 @@ import { IdentifiantPipe } from '../commun/identifiant.pipe.js';
 import { ZodValidationPipe } from '../commun/zod-validation.pipe.js';
 import { fichierImage, TAILLE_MAX_IMAGE } from '../images/fichier-image.pipe.js';
 import { FichesService } from './fiches.service.js';
+import { ReactionsService } from './reactions.service.js';
 
 // Toutes les routes des fiches demandent d'être connecté.
 @UseGuards(JwtAuthGuard)
 @Controller('fiches')
 export class FichesController {
-  constructor(private readonly fichesService: FichesService) {}
+  constructor(
+    private readonly fichesService: FichesService,
+    private readonly reactionsService: ReactionsService,
+  ) {}
 
   @Get()
   lister(@Query(new ZodValidationPipe(filtresFichesSchema)) filtres: FiltresFiches) {
@@ -49,6 +53,12 @@ export class FichesController {
   @Get('miennes')
   miennes(@UtilisateurConnecte() utilisateur: UtilisateurJwt) {
     return this.fichesService.miennes(utilisateur);
+  }
+
+  // Les fiches des autres gardées dans sa Malle.
+  @Get('gardees')
+  gardees(@UtilisateurConnecte() utilisateur: UtilisateurJwt) {
+    return this.reactionsService.malle(utilisateur);
   }
 
   // IdentifiantPipe refuse (400) un identifiant qui n'a pas le format d'un UUID, avant toute requête SQL.
@@ -125,5 +135,40 @@ export class FichesController {
     @UtilisateurConnecte() utilisateur: UtilisateurJwt,
   ) {
     return this.fichesService.retirerPhoto(id, photoId, utilisateur);
+  }
+
+  // ---------- « J'aime » et Malle ----------
+  // PUT pour ajouter, DELETE pour retirer : la même requête répétée donne le même résultat.
+
+  @Put(':id/aime')
+  aimer(
+    @Param('id', IdentifiantPipe) id: string,
+    @UtilisateurConnecte() utilisateur: UtilisateurJwt,
+  ) {
+    return this.reactionsService.aimer(id, utilisateur);
+  }
+
+  @Delete(':id/aime')
+  retirerAime(
+    @Param('id', IdentifiantPipe) id: string,
+    @UtilisateurConnecte() utilisateur: UtilisateurJwt,
+  ) {
+    return this.reactionsService.retirerAime(id, utilisateur);
+  }
+
+  @Put(':id/malle')
+  garder(
+    @Param('id', IdentifiantPipe) id: string,
+    @UtilisateurConnecte() utilisateur: UtilisateurJwt,
+  ) {
+    return this.reactionsService.garder(id, utilisateur);
+  }
+
+  @Delete(':id/malle')
+  retirerDeLaMalle(
+    @Param('id', IdentifiantPipe) id: string,
+    @UtilisateurConnecte() utilisateur: UtilisateurJwt,
+  ) {
+    return this.reactionsService.retirerDeLaMalle(id, utilisateur);
   }
 }
