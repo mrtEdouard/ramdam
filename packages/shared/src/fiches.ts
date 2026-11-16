@@ -119,6 +119,8 @@ export const filtresFichesSchema = z.object({
   type: z.enum(typesFiche).optional(),
   age: z.coerce.number().int().min(3).max(17).optional(),
   recherche: z.string().trim().max(100).optional(),
+  // Les fiches d'un animateur, pour son profil public.
+  auteur: z.string().trim().max(30).optional(),
   page: z.coerce.number().int().min(1).default(1),
   parPage: z.coerce.number().int().min(1).max(50).default(20),
 });

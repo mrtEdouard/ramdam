@@ -1,6 +1,7 @@
 import type { FicheResume, OffreResume, PageDeFiches, TypeFiche } from '@ramdam/shared';
 import { Link } from 'expo-router';
 import {
+  Bell,
   Dices,
   Flag,
   Moon,
@@ -37,6 +38,8 @@ export default function Accueil() {
   const aLaUne = useRequete<FicheResume | null>('/fiches/a-la-une');
   const recentes = useRequete<PageDeFiches>('/fiches?parPage=9');
   const offres = useRequete<OffreResume[]>('/offres?nombre=3');
+  // Rechargé à chaque retour sur l'accueil : la cloche se remet à zéro après la lecture.
+  const nonLues = useRequete<{ nombre: number }>('/notifications/non-lues').donnees?.nombre ?? 0;
   if (!session) {
     return null;
   }
@@ -52,11 +55,26 @@ export default function Accueil() {
       <ScrollView contentContainerStyle={styles.defilement} showsVerticalScrollIndicator={false}>
         <View style={styles.entete}>
           <Logo />
-          <Link href="/profil" asChild>
-            <Pressable accessibilityRole="button" accessibilityLabel="Mon profil" hitSlop={8}>
-              <Avatar pseudo={pseudo} taille={40} />
-            </Pressable>
-          </Link>
+          <View style={styles.actionsEntete}>
+            <Link href="/notifications" asChild>
+              <Pressable
+                style={styles.cloche}
+                accessibilityRole="button"
+                accessibilityLabel={
+                  nonLues ? `Notifications, ${nonLues} nouvelles` : 'Notifications'
+                }
+                hitSlop={8}
+              >
+                <Bell size={22} color={couleurs.encre} strokeWidth={2} />
+                {nonLues > 0 && <Text style={styles.badge}>{nonLues > 9 ? '9+' : nonLues}</Text>}
+              </Pressable>
+            </Link>
+            <Link href="/profil" asChild>
+              <Pressable accessibilityRole="button" accessibilityLabel="Mon profil" hitSlop={8}>
+                <Avatar pseudo={pseudo} taille={40} />
+              </Pressable>
+            </Link>
+          </View>
         </View>
 
         <View style={styles.salutation}>
@@ -172,6 +190,34 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     paddingHorizontal: MARGE,
     paddingBottom: 32,
+  },
+  actionsEntete: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  cloche: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: couleurs.surface,
+    borderWidth: 1,
+    borderColor: couleurs.trait,
+  },
+  // Pastille du nombre de notifications non lues, posée en haut à droite de la cloche.
+  badge: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    minWidth: 20,
+    height: 20,
+    paddingHorizontal: 5,
+    borderRadius: 10,
+    overflow: 'hidden',
+    textAlign: 'center',
+    lineHeight: 20,
+    backgroundColor: couleurs.corail,
+    fontFamily: polices.texteGras,
+    fontSize: 11,
+    color: couleurs.surface,
   },
   entete: {
     flexDirection: 'row',

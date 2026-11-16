@@ -99,6 +99,34 @@ BEGIN
 END;
 $$;
 
+-- RG-24 : aimer prévient l'auteur une seule fois, même après avoir retiré puis remis son « j'aime »
+DO $$
+DECLARE
+  nombre integer;
+BEGIN
+  INSERT INTO aimer (utilisateur_id, fiche_id)
+    VALUES ('00000000-0000-0000-0000-000000000006', '10000000-0000-0000-0000-000000000003');
+  DELETE FROM aimer WHERE utilisateur_id = '00000000-0000-0000-0000-000000000006'
+    AND fiche_id = '10000000-0000-0000-0000-000000000003';
+  INSERT INTO aimer (utilisateur_id, fiche_id)
+    VALUES ('00000000-0000-0000-0000-000000000006', '10000000-0000-0000-0000-000000000003');
+  SELECT count(*) INTO nombre FROM notification
+    WHERE acteur_id = '00000000-0000-0000-0000-000000000006'
+      AND fiche_id = '10000000-0000-0000-0000-000000000003';
+  IF nombre <> 1 THEN
+    RAISE EXCEPTION 'ÉCHEC RG-24 : % notifications au lieu de 1', nombre;
+  END IF;
+  RAISE NOTICE 'OK RG-24 une seule notification par personne et par fiche';
+END;
+$$;
+
+SELECT pg_temp.doit_echouer('RG-24 l''API ne crée pas de notification elle-même',
+  $q$SET LOCAL ROLE ramdam_app;
+     INSERT INTO notification (destinataire_id, acteur_id, type, fiche_id)
+     VALUES ('00000000-0000-0000-0000-000000000004', '00000000-0000-0000-0000-000000000005',
+             'FICHE_AIMEE', '10000000-0000-0000-0000-000000000003')$q$);
+RESET ROLE;
+
 -- RG-17 et RG-18 : XP attribuée une seule fois, même après un like retiré puis remis
 DO $$
 DECLARE

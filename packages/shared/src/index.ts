@@ -4,3 +4,4 @@ export * from './auth.js';
 export * from './niveaux.js';
 export * from './fiches.js';
 export * from './offres.js';
+export * from './notifications.js';

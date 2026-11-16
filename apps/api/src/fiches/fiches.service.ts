@@ -52,6 +52,7 @@ export class FichesService {
         age_min: { lte: filtres.age },
         age_max: { gte: filtres.age },
       }),
+      ...(filtres.auteur && { utilisateur: { pseudo: filtres.auteur } }),
       ...(filtres.recherche && {
         titre: { contains: filtres.recherche, mode: 'insensitive' },
       }),

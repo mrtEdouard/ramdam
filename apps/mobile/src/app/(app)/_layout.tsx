@@ -28,6 +28,8 @@ export default function LayoutApp() {
         <Stack.Screen name="fiches/nouvelle" options={{ title: 'Nouvelle fiche' }} />
         <Stack.Screen name="offres/[id]" options={{ title: 'Offre' }} />
         <Stack.Screen name="profil" options={{ title: 'Profil' }} />
+        <Stack.Screen name="profils/[pseudo]" options={{ title: 'Profil' }} />
+        <Stack.Screen name="notifications" options={{ title: 'Notifications' }} />
         {/* RG-15 : seuls les Directeurs peuvent ouvrir la création d'offre, même par un lien direct. */}
         <Stack.Protected guard={estDirecteur}>
           <Stack.Screen name="creer" options={{ title: 'Créer', presentation: 'modal' }} />

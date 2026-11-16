@@ -1,6 +1,6 @@
 import { libelleType, type EtatAime, type FicheDetail } from '@ramdam/shared';
 import { Image } from 'expo-image';
-import { router, useLocalSearchParams } from 'expo-router';
+import { Link, router, useLocalSearchParams } from 'expo-router';
 import { Bookmark, BookmarkCheck, Clock, Heart, Smile, Users, X } from 'lucide-react-native';
 import { useState, type ReactNode } from 'react';
 import {
@@ -157,8 +157,17 @@ export default function DetailFiche() {
         </Text>
 
         <View style={styles.auteur}>
-          <Avatar pseudo={fiche.auteur} taille={32} />
-          <Text style={styles.pseudo}>{fiche.auteur}</Text>
+          {/* Le pseudo de l'auteur mène à son profil public. */}
+          <Link href={{ pathname: '/profils/[pseudo]', params: { pseudo: fiche.auteur } }} asChild>
+            <Pressable
+              style={styles.lienAuteur}
+              accessibilityRole="link"
+              accessibilityLabel={`Voir le profil de ${fiche.auteur}`}
+            >
+              <Avatar pseudo={fiche.auteur} taille={32} />
+              <Text style={styles.pseudo}>{fiche.auteur}</Text>
+            </Pressable>
+          </Link>
           {fiche.publieeLe && (
             <Text style={styles.date}>· {depuis(new Date(fiche.publieeLe))}</Text>
           )}
@@ -410,6 +419,7 @@ const styles = StyleSheet.create({
   pseudo: { fontFamily: polices.texteGras, fontSize: 15, color: couleurs.encre },
   date: { fontFamily: polices.texte, fontSize: 14, color: couleurs.encre2 },
   aimes: { flexDirection: 'row', alignItems: 'center', gap: 5, marginLeft: 'auto' },
+  lienAuteur: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   nombreAimes: { fontFamily: polices.texteGras, fontSize: 15, color: couleurs.encre },
   reactions: { flexDirection: 'row', gap: 10 },
   reaction: {
