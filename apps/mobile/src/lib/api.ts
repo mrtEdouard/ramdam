@@ -58,9 +58,15 @@ export async function envoyerPhoto<T>(
 ): Promise<T> {
   const formulaire = new FormData();
   if (Platform.OS === 'web') {
-    // Sur le web, on relit la photo convertie pour obtenir un vrai fichier du navigateur.
+    // Sur le web, on relit la photo choisie pour obtenir un vrai fichier du navigateur.
     const fichier = await (await fetch(adresseLocale)).blob();
-    formulaire.append('image', new Blob([fichier], { type: 'image/jpeg' }), 'photo.jpg');
+    // On garde son type (JPEG, PNG, WebP, HEIC). Certains navigateurs n'en donnent aucun pour
+    // le HEIC : on l'annonce alors comme une image, et le serveur reconnaît le vrai format
+    // en lisant le début du fichier.
+    const type = /^image\/(jpeg|png|webp|heic|heif)$/.test(fichier.type)
+      ? fichier.type
+      : 'image/jpeg';
+    formulaire.append('image', new Blob([fichier], { type }), 'photo');
   } else {
     // Sur téléphone, React Native lit le fichier à partir de son adresse locale.
     formulaire.append('image', {
