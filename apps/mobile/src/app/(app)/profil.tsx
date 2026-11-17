@@ -9,6 +9,7 @@ import {
   LogOut,
   Pencil,
   ShieldCheck,
+  Smartphone,
   X,
 } from 'lucide-react-native';
 import { useCallback, useState } from 'react';
@@ -16,10 +17,12 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from
 import Animated, { FadeIn, FadeInUp, FadeOut } from 'react-native-reanimated';
 import { CarteProfil, CompteursProfil } from '@/components/carte-profil';
 import { Embleme } from '@/components/embleme';
+import { FenetreInstallation } from '@/components/fenetre-installation';
 import { MessageErreur } from '@/components/message-erreur';
 import { couleurs, polices } from '@/constants/theme';
 import { ErreurApi, lire } from '@/lib/api';
 import { depuis } from '@/lib/format';
+import { useInstallation } from '@/lib/installation';
 import { useSession } from '@/session/session-context';
 
 // Les gains d'XP fixés par les triggers de la base (database/01_schema.sql).
@@ -38,6 +41,9 @@ export default function PageProfil() {
   const [erreur, setErreur] = useState<string | null>(null);
   const [baremeVisible, setBaremeVisible] = useState(false);
   const [niveauxVisibles, setNiveauxVisibles] = useState(false);
+  // Le site pas encore installé : un bouton pour l'ajouter au téléphone, à tout moment.
+  const installation = useInstallation();
+  const [installationOuverte, setInstallationOuverte] = useState(false);
 
   // Recharge le profil à chaque ouverture de l'écran : l'XP a pu changer entre-temps.
   useFocusEffect(
@@ -232,6 +238,21 @@ export default function PageProfil() {
           ))
         )}
       </View>
+
+      {installation.proposable && (
+        <Pressable
+          onPress={() => setInstallationOuverte(true)}
+          style={styles.modifier}
+          accessibilityRole="button"
+        >
+          <Smartphone size={18} color={couleurs.encre} strokeWidth={2} />
+          <Text style={styles.texteModifier}>Ajouter Ramdam à mon téléphone</Text>
+        </Pressable>
+      )}
+      <FenetreInstallation
+        ouverte={installationOuverte}
+        fermer={() => setInstallationOuverte(false)}
+      />
 
       {profil.role === 'ADMIN' && (
         <Pressable

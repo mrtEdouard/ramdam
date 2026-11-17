@@ -17,6 +17,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Avatar } from '@/components/avatar';
 import { CarteFiche } from '@/components/carte-fiche';
 import { CarteUne } from '@/components/carte-une';
+import { InvitationInstallation } from '@/components/fenetre-installation';
 import { LigneOffre } from '@/components/ligne-offre';
 import { Logo } from '@/components/logo';
 import { MessageErreur } from '@/components/message-erreur';
@@ -54,6 +55,8 @@ export default function Accueil() {
 
   return (
     <SafeAreaView style={styles.ecran} edges={['top']}>
+      {/* Sur le site : propose d'ajouter Ramdam à l'écran d'accueil du téléphone. */}
+      <InvitationInstallation />
       <ScrollView contentContainerStyle={styles.defilement} showsVerticalScrollIndicator={false}>
         <View style={styles.entete}>
           <Logo />
