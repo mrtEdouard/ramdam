@@ -2,7 +2,9 @@ import type { ReactNode } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Logo } from '@/components/logo';
+import { MessageErreur } from '@/components/message-erreur';
 import { couleurs, polices } from '@/constants/theme';
+import { useSession } from '@/session/session-context';
 
 type Props = {
   titre: string;
@@ -16,6 +18,7 @@ type Props = {
 // et formulaire posé directement sur le fond, sans carte centrée (le schéma le plus générique).
 
 export function EcranAuth({ titre, intro, pied, children }: Props) {
+  const { avertissement } = useSession();
   return (
     <SafeAreaView style={styles.ecran}>
       <KeyboardAvoidingView
@@ -34,6 +37,8 @@ export function EcranAuth({ titre, intro, pied, children }: Props) {
                 {titre}
               </Text>
               <Text style={styles.intro}>{intro}</Text>
+              {/* Déconnecté de force (compte supprimé, session expirée) : on dit pourquoi. */}
+              {avertissement && <MessageErreur message={avertissement} />}
             </View>
             <View style={styles.carte}>{children}</View>
             <View style={styles.pied}>{pied}</View>

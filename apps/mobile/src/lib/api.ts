@@ -13,6 +13,14 @@ export class ErreurApi extends Error {
   }
 }
 
+// Appelée quand l'API refuse la session (401 sur une route protégée) : jeton expiré, compte
+// supprimé ou suspendu. Le SessionProvider s'y abonne pour déconnecter et renvoyer à la connexion,
+// quel que soit l'écran qui a fait la requête.
+let quandSessionRefusee: ((message: string) => void) | null = null;
+export function surSessionRefusee(action: ((message: string) => void) | null) {
+  quandSessionRefusee = action;
+}
+
 type CorpsErreur = {
   message?: unknown;
   erreurs?: { champ: string; message: string }[];
@@ -109,6 +117,14 @@ async function requete<T>(chemin: string, options: RequestInit): Promise<T> {
     throw new ErreurApi(429, 'Trop de tentatives. Réessaie dans une minute.');
   }
   const { message, erreurs = [] } = (donnees ?? {}) as CorpsErreur;
+  // Une requête connectée (avec un jeton) refusée en 401 : la session n'est plus bonne.
+  // (Un 401 sur /auth/connexion, sans jeton, est juste un mauvais mot de passe.)
+  const avecJeton = new Headers(options.headers).has('Authorization');
+  if (reponse.status === 401 && avecJeton) {
+    quandSessionRefusee?.(
+      typeof message === 'string' ? message : 'Session expirée, reconnecte-toi',
+    );
+  }
   const champs: Record<string, string> = {};
   for (const erreur of erreurs) {
     champs[erreur.champ] ??= erreur.message;

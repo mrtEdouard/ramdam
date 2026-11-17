@@ -15,7 +15,7 @@ import { useSession } from '@/session/session-context';
 const ages = [4, 6, 8, 10, 12, 15];
 
 export default function Activites() {
-  const { session, deconnecter } = useSession();
+  const { session } = useSession();
   // Le type choisi sur l'accueil arrive dans l'adresse : /activites?type=VEILLEE
   const parametres = useLocalSearchParams<{ type?: TypeFiche }>();
   const [type, setType] = useState<TypeFiche | undefined>(parametres.type);
@@ -55,8 +55,8 @@ export default function Activites() {
         );
         setErreur(null);
       } catch (e) {
+        // 401 : la session est refusée, lib/api.ts déconnecte déjà et renvoie à la connexion.
         if (e instanceof ErreurApi && e.statut === 401) {
-          await deconnecter();
           return;
         }
         setErreur(e instanceof ErreurApi ? e.message : 'Impossible de charger les activités.');
@@ -64,7 +64,7 @@ export default function Activites() {
         setChargement(false);
       }
     },
-    [session, deconnecter, type, age, recherche],
+    [session, type, age, recherche],
   );
 
   // Chaque changement de filtre relance la recherche depuis la première page.

@@ -40,7 +40,7 @@ function prochainsMois() {
 }
 
 export default function Offres() {
-  const { session, deconnecter } = useSession();
+  const { session } = useSession();
   const estDirecteur = session?.utilisateur.role === 'DIRECTEUR';
   // Un Directeur peut basculer sur ses propres offres, clôturées comprises.
   const [vue, setVue] = useState<'toutes' | 'miennes'>('toutes');
@@ -73,8 +73,8 @@ export default function Offres() {
         );
         setErreur(null);
       } catch (e) {
+        // 401 : la session est refusée, lib/api.ts déconnecte déjà et renvoie à la connexion.
         if (e instanceof ErreurApi && e.statut === 401) {
-          await deconnecter();
           return;
         }
         setErreur(e instanceof ErreurApi ? e.message : 'Impossible de charger les offres.');
@@ -82,7 +82,7 @@ export default function Offres() {
         setChargement(false);
       }
     },
-    [session, deconnecter, region, mois, typeStructure],
+    [session, region, mois, typeStructure],
   );
 
   // Chaque changement de filtre relance la liste depuis la première page.

@@ -57,9 +57,8 @@ export default function PageProfil() {
           setErreur(null);
         })
         .catch((e) => {
-          // Jeton expiré ou refusé : on renvoie vers la connexion.
+          // 401 : la session est refusée, lib/api.ts déconnecte déjà et renvoie à la connexion.
           if (e instanceof ErreurApi && e.statut === 401) {
-            deconnecter();
             return;
           }
           setErreur(e instanceof ErreurApi ? e.message : 'Impossible de charger le profil.');
@@ -68,7 +67,7 @@ export default function PageProfil() {
       lire<MouvementXp[]>('/profils/moi/historique-xp', session.jeton)
         .then(setHistorique)
         .catch(() => setHistorique([]));
-    }, [session, deconnecter]),
+    }, [session]),
   );
 
   if (erreur) {
