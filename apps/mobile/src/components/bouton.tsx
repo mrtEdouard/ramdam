@@ -46,7 +46,7 @@ export function Bouton({ titre, onPress, chargement = false, variante = 'princip
 const styles = StyleSheet.create({
   bouton: {
     minHeight: 56,
-    borderRadius: 16,
+    borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 24,

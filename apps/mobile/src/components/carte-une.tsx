@@ -64,21 +64,19 @@ export function CarteUne({ fiche }: { fiche: FicheResume }) {
 }
 
 const styles = StyleSheet.create({
-  carte: { height: 300, borderRadius: 24, overflow: 'hidden', justifyContent: 'flex-end' },
+  carte: { height: 300, borderRadius: 14, overflow: 'hidden', justifyContent: 'flex-end' },
   image: { ...StyleSheet.absoluteFill, backgroundColor: couleurs.trait },
   encart: {
     margin: 10,
     padding: 16,
     gap: 4,
-    borderRadius: 18,
+    borderRadius: 10,
     backgroundColor: couleurs.surface,
   },
   type: {
     fontFamily: polices.texteGras,
     fontSize: 12,
-    letterSpacing: 0.8,
-    textTransform: 'uppercase',
-    color: couleurs.corail,
+    color: couleurs.sapin,
   },
   titre: {
     fontFamily: polices.titre,

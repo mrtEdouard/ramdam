@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
   infos: {
     gap: 12,
     padding: 16,
-    borderRadius: 20,
+    borderRadius: 10,
     borderWidth: 1,
     borderColor: couleurs.trait,
     backgroundColor: couleurs.surface,

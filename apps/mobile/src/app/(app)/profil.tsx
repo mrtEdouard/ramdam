@@ -82,7 +82,7 @@ export default function PageProfil() {
           accessibilityRole="button"
           accessibilityLabel="Comment gagner de l’XP"
         >
-          <Info size={20} color="#B9B6C8" strokeWidth={2} />
+          <Info size={20} color="#B8AFA3" strokeWidth={2} />
         </Pressable>
 
         {/* Le barème s'ouvre par-dessus la carte, sans quitter le profil. */}
@@ -237,13 +237,8 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   // Carte « nuit » en tête du profil : les insignes de rang brillent sur un fond sombre.
-  carte: {
-    padding: 16,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: couleurs.trait,
-    backgroundColor: couleurs.surface,
-  },
+  // Sections à plat, sans boîte : le titre et les traits suffisent à les séparer.
+  carte: { paddingVertical: 4 },
   enteteNiveau: { flexDirection: 'row', alignItems: 'baseline', gap: 8, marginBottom: 12 },
   chevron: { marginLeft: 'auto', alignSelf: 'center' },
   listeNiveaux: {
@@ -275,7 +270,7 @@ const styles = StyleSheet.create({
   toi: {
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 999,
+    borderRadius: 6,
     overflow: 'hidden',
     backgroundColor: couleurs.corail,
     fontFamily: polices.texteGras,
@@ -300,7 +295,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 6,
     padding: 24,
-    borderRadius: 28,
+    borderRadius: 14,
     backgroundColor: 'rgba(16, 14, 25, 0.97)',
   },
   enteteBareme: {
@@ -332,7 +327,7 @@ const styles = StyleSheet.create({
     gap: 10,
     minHeight: 52,
     marginTop: 12,
-    borderRadius: 16,
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: couleurs.trait,
     backgroundColor: couleurs.surface,

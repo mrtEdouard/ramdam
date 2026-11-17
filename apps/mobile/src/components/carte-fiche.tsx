@@ -44,7 +44,7 @@ export function CarteFiche({ fiche }: { fiche: FicheResume }) {
 
 const styles = StyleSheet.create({
   carte: { width: 196, gap: 6 },
-  image: { height: 220, borderRadius: 20, backgroundColor: couleurs.trait },
+  image: { height: 220, borderRadius: 10, backgroundColor: couleurs.trait },
   // Étiquette posée sur la photo, sur fond blanc pour rester lisible quelle que soit l'image.
   etiquette: {
     position: 'absolute',
@@ -52,7 +52,7 @@ const styles = StyleSheet.create({
     left: 10,
     paddingHorizontal: 10,
     paddingVertical: 5,
-    borderRadius: 999,
+    borderRadius: 6,
     overflow: 'hidden',
     backgroundColor: couleurs.surface,
     fontFamily: polices.texteGras,

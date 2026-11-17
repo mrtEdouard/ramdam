@@ -107,8 +107,8 @@ const styles = StyleSheet.create({
     minHeight: 52,
     paddingHorizontal: 16,
     borderWidth: 1.5,
-    borderRadius: 14,
-    backgroundColor: couleurs.fond,
+    borderRadius: 8,
+    backgroundColor: couleurs.surface,
   },
   icone: { flexShrink: 0 },
   saisie: {

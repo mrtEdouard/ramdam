@@ -12,8 +12,9 @@ type Props = {
   children: ReactNode;
 };
 
-// Mise en page des écrans de connexion et d'inscription :
-// logo, titre et formulaire dans une carte, centrés dans l'écran.
+// Mise en page des écrans de connexion et d'inscription : logo, grand titre aligné à gauche
+// et formulaire posé directement sur le fond, sans carte centrée (le schéma le plus générique).
+
 export function EcranAuth({ titre, intro, pied, children }: Props) {
   return (
     <SafeAreaView style={styles.ecran}>
@@ -46,37 +47,19 @@ export function EcranAuth({ titre, intro, pied, children }: Props) {
 const styles = StyleSheet.create({
   ecran: { flex: 1, backgroundColor: couleurs.fond },
   colonne: { flex: 1 },
-  // flexGrow + justifyContent : le formulaire est centré verticalement,
-  // et l'écran défile seulement s'il est plus haut que la fenêtre.
-  defilement: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: 16, paddingVertical: 32 },
-  contenu: { width: '100%', maxWidth: 420, alignSelf: 'center', gap: 24 },
-  entete: { alignItems: 'center', gap: 10 },
+  // L'écran défile seulement s'il est plus haut que la fenêtre.
+  defilement: { flexGrow: 1, paddingHorizontal: 24, paddingTop: 28, paddingBottom: 32 },
+  contenu: { width: '100%', maxWidth: 420, alignSelf: 'center', gap: 28 },
+  entete: { alignItems: 'flex-start', gap: 10 },
   titre: {
-    marginTop: 14,
+    marginTop: 36,
     fontFamily: polices.titre,
-    fontSize: 30,
-    lineHeight: 34,
-    letterSpacing: -1,
+    fontSize: 40,
+    lineHeight: 42,
+    letterSpacing: -1.4,
     color: couleurs.encre,
-    textAlign: 'center',
   },
-  intro: {
-    maxWidth: 290,
-    fontFamily: polices.texte,
-    fontSize: 15,
-    lineHeight: 22,
-    color: couleurs.encre2,
-    textAlign: 'center',
-  },
-  carte: {
-    gap: 20,
-    padding: 20,
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: couleurs.trait,
-    backgroundColor: couleurs.surface,
-    // Ombre très légère : la carte se détache du fond sans effet de relief marqué.
-    boxShadow: '0 1px 2px rgba(28, 26, 51, 0.04), 0 8px 24px rgba(28, 26, 51, 0.06)',
-  },
-  pied: { alignItems: 'center' },
+  intro: { fontFamily: polices.texte, fontSize: 16, lineHeight: 23, color: couleurs.encre2 },
+  carte: { gap: 20 },
+  pied: { alignItems: 'flex-start' },
 });

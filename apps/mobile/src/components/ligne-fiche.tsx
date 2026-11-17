@@ -8,7 +8,7 @@ import { duree } from '@/lib/format';
 import { imageDeFiche } from '@/lib/images';
 
 const statuts = {
-  BROUILLON: { libelle: 'Brouillon', fond: '#EFEBE5', texte: couleurs.encre2 },
+  BROUILLON: { libelle: 'Brouillon', fond: couleurs.trait, texte: couleurs.encre2 },
   MASQUEE: { libelle: 'Masquée', fond: couleurs.erreurDoux, texte: couleurs.erreur },
   PUBLIEE: null,
 };
@@ -70,25 +70,23 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 14,
     padding: 10,
-    borderRadius: 20,
+    borderRadius: 10,
     borderWidth: 1,
     borderColor: couleurs.trait,
     backgroundColor: couleurs.surface,
   },
-  image: { width: 92, height: 92, borderRadius: 14, backgroundColor: couleurs.trait },
+  image: { width: 92, height: 92, borderRadius: 8, backgroundColor: couleurs.trait },
   textes: { flex: 1, justifyContent: 'center', gap: 3 },
   entete: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   type: {
     fontFamily: polices.texteGras,
     fontSize: 12,
-    letterSpacing: 0.8,
-    textTransform: 'uppercase',
-    color: couleurs.corail,
+    color: couleurs.sapin,
   },
   statut: {
     paddingHorizontal: 8,
     paddingVertical: 2,
-    borderRadius: 999,
+    borderRadius: 6,
     overflow: 'hidden',
     fontFamily: polices.texteGras,
     fontSize: 11,

@@ -58,9 +58,9 @@ const styles = StyleSheet.create({
     maxWidth: '90%',
     paddingHorizontal: 18,
     paddingVertical: 12,
-    borderRadius: 999,
+    borderRadius: 6,
     backgroundColor: couleurs.encre,
-    boxShadow: '0 8px 24px rgba(28, 26, 51, 0.25)',
+    boxShadow: '0 6px 18px rgba(30, 26, 22, 0.22)',
   },
   texte: { fontFamily: polices.texteGras, fontSize: 15, color: couleurs.surface },
 });

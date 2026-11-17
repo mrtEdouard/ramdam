@@ -39,7 +39,7 @@ function Choix({ icone: Icone, titre, description, onPress }: PropsChoix) {
       accessibilityLabel={`${titre}, ${description}`}
     >
       <View style={styles.pastille}>
-        <Icone size={22} color={couleurs.corail} strokeWidth={2} />
+        <Icone size={24} color={couleurs.encre} strokeWidth={1.75} />
       </View>
       <View style={styles.textes}>
         <Text style={styles.titre}>{titre}</Text>
@@ -51,26 +51,17 @@ function Choix({ icone: Icone, titre, description, onPress }: PropsChoix) {
 }
 
 const styles = StyleSheet.create({
-  page: { flex: 1, gap: 12, padding: 20, backgroundColor: couleurs.fond },
+  page: { flex: 1, paddingHorizontal: 20, paddingTop: 8, backgroundColor: couleurs.fond },
   choix: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 14,
-    padding: 16,
-    borderRadius: 20,
-    borderWidth: 1,
+    paddingVertical: 18,
+    borderBottomWidth: 1,
     borderColor: couleurs.trait,
-    backgroundColor: couleurs.surface,
   },
   appuye: { opacity: 0.85 },
-  pastille: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: couleurs.corailDoux,
-  },
+  pastille: { width: 28, alignItems: 'center' },
   textes: { flex: 1, gap: 2 },
   titre: { fontFamily: polices.texteGras, fontSize: 16, color: couleurs.encre },
   description: { fontFamily: polices.texte, fontSize: 14, color: couleurs.encre2 },

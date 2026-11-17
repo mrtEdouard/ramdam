@@ -32,7 +32,7 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: 4,
     padding: 14,
-    borderRadius: 16,
+    borderRadius: 8,
     borderWidth: 1.5,
     borderColor: couleurs.trait,
     backgroundColor: couleurs.fond,

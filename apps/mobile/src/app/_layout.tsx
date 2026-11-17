@@ -82,7 +82,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     padding: 24,
-    backgroundColor: '#E9E4DC',
+    backgroundColor: '#E4DCCD',
   },
   telephone: {
     width: 430,
@@ -91,6 +91,6 @@ const styles = StyleSheet.create({
     borderRadius: 36,
     overflow: 'hidden',
     backgroundColor: couleurs.fond,
-    boxShadow: '0 30px 80px rgba(28, 26, 51, 0.25)',
+    boxShadow: '0 30px 80px rgba(30, 26, 22, 0.22)',
   },
 });

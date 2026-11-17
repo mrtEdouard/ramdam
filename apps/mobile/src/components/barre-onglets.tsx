@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
   boutonCreer: {
     width: 52,
     height: 52,
-    borderRadius: 18,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: couleurs.corail,

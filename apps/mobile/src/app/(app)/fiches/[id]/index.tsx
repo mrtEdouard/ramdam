@@ -222,18 +222,18 @@ export default function DetailFiche() {
 
         <View style={styles.infos}>
           <Info
-            icone={<Smile size={18} color={couleurs.corail} />}
+            icone={<Smile size={18} color={couleurs.encre2} />}
             libelle="Âges"
             valeur={`${fiche.ageMin} à ${fiche.ageMax} ans`}
           />
           <Info
-            icone={<Clock size={18} color={couleurs.corail} />}
+            icone={<Clock size={18} color={couleurs.encre2} />}
             libelle="Durée"
             valeur={duree(fiche.dureeMinutes)}
           />
           {participants && (
             <Info
-              icone={<Users size={18} color={couleurs.corail} />}
+              icone={<Users size={18} color={couleurs.encre2} />}
               libelle="Participants"
               valeur={participants}
             />
@@ -383,16 +383,14 @@ const styles = StyleSheet.create({
   type: {
     fontFamily: polices.texteGras,
     fontSize: 13,
-    letterSpacing: 0.8,
-    textTransform: 'uppercase',
-    color: couleurs.corail,
+    color: couleurs.sapin,
   },
   brouillon: {
     paddingHorizontal: 10,
     paddingVertical: 3,
-    borderRadius: 999,
+    borderRadius: 6,
     overflow: 'hidden',
-    backgroundColor: '#EFEBE5',
+    backgroundColor: couleurs.trait,
     fontFamily: polices.texteGras,
     fontSize: 12,
     color: couleurs.encre2,
@@ -400,7 +398,7 @@ const styles = StyleSheet.create({
   masquee: {
     paddingHorizontal: 10,
     paddingVertical: 3,
-    borderRadius: 999,
+    borderRadius: 6,
     overflow: 'hidden',
     backgroundColor: couleurs.erreurDoux,
     fontFamily: polices.texteGras,
@@ -429,7 +427,7 @@ const styles = StyleSheet.create({
     gap: 8,
     minHeight: 48,
     paddingHorizontal: 18,
-    borderRadius: 999,
+    borderRadius: 6,
     borderWidth: 1.5,
     borderColor: couleurs.trait,
     backgroundColor: couleurs.surface,
@@ -437,16 +435,13 @@ const styles = StyleSheet.create({
   reactionMalle: { flex: 1 },
   reactionActive: { borderColor: couleurs.corail, backgroundColor: couleurs.corailDoux },
   texteReaction: { fontFamily: polices.texteGras, fontSize: 15, color: couleurs.encre },
-  infos: { flexDirection: 'row', gap: 10 },
-  info: {
-    flex: 1,
-    gap: 4,
-    padding: 12,
-    borderRadius: 16,
-    borderWidth: 1,
+  infos: {
+    flexDirection: 'row',
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
     borderColor: couleurs.trait,
-    backgroundColor: couleurs.surface,
   },
+  info: { flex: 1, gap: 4, paddingVertical: 12, paddingRight: 8 },
   libelleInfo: { fontFamily: polices.texte, fontSize: 13, color: couleurs.encre2 },
   valeurInfo: { fontFamily: polices.texteGras, fontSize: 15, color: couleurs.encre },
   section: { gap: 6 },
@@ -462,16 +457,16 @@ const styles = StyleSheet.create({
   bulle: {
     paddingHorizontal: 12,
     paddingVertical: 7,
-    borderRadius: 999,
+    borderRadius: 6,
     overflow: 'hidden',
     fontFamily: polices.texteMoyen,
     fontSize: 14,
     color: couleurs.encre,
   },
   bulleMateriel: { borderWidth: 1, borderColor: couleurs.trait, backgroundColor: couleurs.surface },
-  bulleObjectif: { backgroundColor: couleurs.corailDoux },
+  bulleObjectif: { backgroundColor: couleurs.sapinDoux },
   galerie: { gap: 10 },
-  vignette: { width: 120, height: 120, borderRadius: 16, backgroundColor: couleurs.trait },
+  vignette: { width: 120, height: 120, borderRadius: 8, backgroundColor: couleurs.trait },
   plein: {
     flex: 1,
     alignItems: 'center',
@@ -485,7 +480,7 @@ const styles = StyleSheet.create({
     right: 20,
     width: 44,
     height: 44,
-    borderRadius: 22,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: 'rgba(255, 255, 255, 0.15)',

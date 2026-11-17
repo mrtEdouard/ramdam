@@ -7,7 +7,7 @@ import { couleurs, polices } from '@/constants/theme';
 import { compteur, moisEtAnnee } from '@/lib/format';
 
 // Le vert du badge Directeur, éclairci pour rester lisible sur la carte sombre.
-const VERT_SUR_NUIT = '#4FD1A5';
+const VERT_SUR_NUIT = '#93CDAE';
 
 // Carte « nuit » en tête d'un profil : insigne de rang, pseudo, rôle et ancienneté.
 // Utilisée pour son propre profil et pour le profil public des autres animateurs.
@@ -76,7 +76,7 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     paddingBottom: 24,
     paddingHorizontal: 16,
-    borderRadius: 28,
+    borderRadius: 14,
     backgroundColor: couleurs.encre,
   },
   rang: {
@@ -96,15 +96,14 @@ const styles = StyleSheet.create({
   ligneRole: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   role: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   texteRole: { fontFamily: polices.texteGras, fontSize: 15, color: couleurs.surface },
-  depuis: { fontFamily: polices.texte, fontSize: 15, color: '#B9B6C8' },
+  depuis: { fontFamily: polices.texte, fontSize: 15, color: '#B8AFA3' },
   compteurs: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 16,
-    borderRadius: 20,
-    borderWidth: 1,
+    paddingVertical: 14,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
     borderColor: couleurs.trait,
-    backgroundColor: couleurs.surface,
   },
   compteur: { flex: 1, alignItems: 'center', gap: 2, paddingHorizontal: 4 },
   valeur: { fontFamily: polices.titre, fontSize: 26, letterSpacing: -0.6, color: couleurs.encre },

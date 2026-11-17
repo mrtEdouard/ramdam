@@ -28,7 +28,7 @@ const styles = StyleSheet.create({
     minHeight: 38,
     justifyContent: 'center',
     paddingHorizontal: 14,
-    borderRadius: 999,
+    borderRadius: 6,
     borderWidth: 1,
     borderColor: couleurs.trait,
     backgroundColor: couleurs.surface,
