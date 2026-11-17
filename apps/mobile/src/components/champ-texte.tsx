@@ -119,7 +119,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: couleurs.encre,
     // Sur le web, la bordure change déjà de couleur au focus : on retire le contour du navigateur.
+    // outlineStyle aussi : quand le focus est donné par le code (après la carte des régions),
+    // le navigateur dessine sinon son cadre « auto », même avec une épaisseur de 0.
     outlineWidth: 0,
+    outlineStyle: 'solid',
   },
   // Champ de plusieurs lignes (déroulement d'une fiche) : le texte part du haut.
   boiteMultiligne: { minHeight: 120, alignItems: 'flex-start', paddingVertical: 12 },

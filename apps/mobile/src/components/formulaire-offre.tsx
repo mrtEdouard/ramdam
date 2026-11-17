@@ -10,12 +10,13 @@ import {
   type Region,
   type TypeStructure,
 } from '@ramdam/shared';
-import { useState, type ReactNode } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useRef, useState, type ReactNode } from 'react';
+import { ScrollView, StyleSheet, Text, View, type TextInputInstance } from 'react-native';
 import { Bouton } from '@/components/bouton';
 import { CarteRegions } from '@/components/carte-regions';
 import { ChampPhotos, type PhotoEnLigne } from '@/components/champ-photos';
 import { ChampTexte } from '@/components/champ-texte';
+import { ChampVille } from '@/components/champ-ville';
 import { MessageErreur } from '@/components/message-erreur';
 import { Puce } from '@/components/puce';
 import { couleurs, polices } from '@/constants/theme';
@@ -107,12 +108,18 @@ export function FormulaireOffre({ offre, enregistrer, termine }: Props) {
     setErreurGenerale(null);
   }
 
+  // Une fois la région touchée sur la carte, on passe directement à la ville.
+  const champVille = useRef<TextInputInstance>(null);
+  function choisirRegion(region: Region) {
+    modifier('region', region);
+    champVille.current?.focus();
+  }
+
   // Propriétés communes aux champs texte : valeur, saisie, sortie du champ et erreur.
   const lier = (
     champ:
       | 'intitule'
       | 'structure'
-      | 'ville'
       | 'dateDebut'
       | 'dateFin'
       | 'description'
@@ -194,13 +201,20 @@ export function FormulaireOffre({ offre, enregistrer, termine }: Props) {
         ))}
       </Groupe>
 
-      <ChampTexte libelle="Ville" placeholder="Annecy" maxLength={80} {...lier('ville')} />
-
       <View style={styles.groupe}>
         <Text style={styles.libelle}>Région</Text>
-        <CarteRegions choisie={saisie.region} choisir={(r) => modifier('region', r)} />
+        <CarteRegions choisie={saisie.region} choisir={choisirRegion} />
         {erreurDe('region') && <Text style={styles.erreur}>{erreurDe('region')}</Text>}
       </View>
+
+      <ChampVille
+        ref={champVille}
+        valeur={saisie.ville}
+        changer={(ville) => modifier('ville', ville)}
+        region={saisie.region}
+        erreur={erreurDe('ville')}
+        onBlur={() => setChampsQuittes({ ...champsQuittes, ville: true })}
+      />
 
       <View style={styles.ligne}>
         <View style={styles.moitie}>
