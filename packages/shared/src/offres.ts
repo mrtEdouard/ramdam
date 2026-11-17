@@ -126,6 +126,8 @@ export type OffreResume = {
   dateFin: string;
   directeur: string;
   statut: StatutOffre;
+  // Première photo de l'offre, en vignette dans la liste ; null s'il n'y en a pas.
+  photoUrl: string | null;
 };
 
 export type OffreDetail = OffreResume & {
@@ -133,9 +135,15 @@ export type OffreDetail = OffreResume & {
   diplomeRequis: string | null;
   // Les candidatures se font hors de Ramdam : adresse e-mail ou lien vers la structure.
   contactExterne: string;
+  photos: PhotoOffre[];
   // Vrai pour le Directeur qui l'a publiée : il peut la modifier, la clôturer, la supprimer.
   estAMoi: boolean;
 };
+
+export type PhotoOffre = { id: string; url: string };
+
+// RG-27 : 6 photos au plus par offre (le séjour, les locaux, une activité…).
+export const PHOTOS_PAR_OFFRE = 6;
 
 export type PageDOffres = {
   offres: OffreResume[];

@@ -1,6 +1,7 @@
-import { ForbiddenException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import type { OffreDto } from '@ramdam/shared';
 import type { UtilisateurJwt } from '../auth/jwt-auth.guard.js';
+import type { StockageImages } from '../images/stockage-images.service.js';
 import type { PrismaService } from '../prisma/prisma.service.js';
 import { OffresService } from './offres.service.js';
 
@@ -13,8 +14,19 @@ const prisma = {
     update: vi.fn(),
     delete: vi.fn(),
   },
+  photo_offre: {
+    findMany: vi.fn(),
+    findFirst: vi.fn(),
+    count: vi.fn(),
+    create: vi.fn(),
+    delete: vi.fn(),
+  },
 };
-const service = new OffresService(prisma as unknown as PrismaService);
+const images = { enregistrer: vi.fn(), supprimer: vi.fn() };
+const service = new OffresService(
+  prisma as unknown as PrismaService,
+  images as unknown as StockageImages,
+);
 
 const sophie: UtilisateurJwt = { sub: 'id-sophie', role: 'DIRECTEUR' };
 const marc: UtilisateurJwt = { sub: 'id-marc', role: 'DIRECTEUR' };
@@ -33,6 +45,7 @@ const ligne = {
   contact_externe: 'recrutement@chamois.fr',
   statut: 'OUVERTE',
   utilisateur: { pseudo: 'sophie' },
+  photo_offre: [{ id: 'id-photo', url: '/images/chalet.webp' }],
 };
 
 const dto: OffreDto = {
@@ -60,7 +73,11 @@ describe('lister', () => {
     expect(requete.where).toMatchObject({ statut: 'OUVERTE', region: 'Occitanie' });
     expect(requete.skip).toBe(5);
     expect(page).toMatchObject({ page: 2, pages: 3, total: 11 });
-    expect(page.offres[0]).toMatchObject({ id: 'id-offre', dateDebut: '2027-07-05' });
+    expect(page.offres[0]).toMatchObject({
+      id: 'id-offre',
+      dateDebut: '2027-07-05',
+      photoUrl: '/images/chalet.webp', // la première photo sert de vignette
+    });
   });
 
   it('filtre par mois : l’offre doit avoir au moins un jour dans le mois', async () => {
@@ -111,9 +128,60 @@ describe('clôturer et supprimer', () => {
     await expect(service.supprimer('id-offre', sophie)).rejects.toThrow(NotFoundException);
   });
 
+  it('supprime aussi les fichiers des photos', async () => {
+    prisma.offre.findUnique.mockResolvedValue(ligne);
+    prisma.photo_offre.findMany.mockResolvedValue(ligne.photo_offre);
+
+    await service.supprimer('id-offre', sophie);
+
+    expect(prisma.offre.delete).toHaveBeenCalledWith({ where: { id: 'id-offre' } });
+    expect(images.supprimer).toHaveBeenCalledWith('/images/chalet.webp');
+  });
+
   it('refuse de supprimer l’offre d’un autre', async () => {
     prisma.offre.findUnique.mockResolvedValue(ligne);
     await expect(service.supprimer('id-offre', marc)).rejects.toThrow(ForbiddenException);
     expect(prisma.offre.delete).not.toHaveBeenCalled();
+  });
+});
+
+describe('photos (RG-27)', () => {
+  it('ajoute une photo à son offre', async () => {
+    prisma.offre.findUnique.mockResolvedValue(ligne);
+    prisma.photo_offre.count.mockResolvedValue(1);
+    images.enregistrer.mockResolvedValue('/images/lac.webp');
+    prisma.photo_offre.create.mockResolvedValue({ id: 'id-lac', url: '/images/lac.webp' });
+
+    await expect(service.ajouterPhoto('id-offre', Buffer.from('x'), sophie)).resolves.toEqual({
+      id: 'id-lac',
+      url: '/images/lac.webp',
+    });
+  });
+
+  it('refuse une 7e photo, sans rien enregistrer', async () => {
+    prisma.offre.findUnique.mockResolvedValue(ligne);
+    prisma.photo_offre.count.mockResolvedValue(6);
+
+    await expect(service.ajouterPhoto('id-offre', Buffer.from('x'), sophie)).rejects.toThrow(
+      BadRequestException,
+    );
+    expect(images.enregistrer).not.toHaveBeenCalled();
+  });
+
+  it('refuse d’ajouter une photo à l’offre d’un autre', async () => {
+    prisma.offre.findUnique.mockResolvedValue(ligne);
+    await expect(service.ajouterPhoto('id-offre', Buffer.from('x'), marc)).rejects.toThrow(
+      ForbiddenException,
+    );
+  });
+
+  it('ne retire pas une photo qui appartient à une autre offre', async () => {
+    prisma.offre.findUnique.mockResolvedValue(ligne);
+    prisma.photo_offre.findFirst.mockResolvedValue(null);
+
+    await expect(service.retirerPhoto('id-offre', 'id-autre', sophie)).rejects.toThrow(
+      NotFoundException,
+    );
+    expect(images.supprimer).not.toHaveBeenCalled();
   });
 });

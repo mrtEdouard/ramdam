@@ -1,9 +1,11 @@
 import type { OffreResume } from '@ramdam/shared';
+import { Image } from 'expo-image';
 import { Link } from 'expo-router';
 import { ChevronRight } from 'lucide-react-native';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { couleurs, polices } from '@/constants/theme';
 import { jourEtMois, periode } from '@/lib/format';
+import { adresseImage } from '@/lib/images';
 
 // Une offre dans une liste, présentée comme un agenda : la date de début en premier.
 export function LigneOffre({ offre }: { offre: OffreResume }) {
@@ -29,7 +31,11 @@ export function LigneOffre({ offre }: { offre: OffreResume }) {
           </Text>
           {offre.statut === 'CLOTUREE' && <Text style={styles.cloturee}>Clôturée</Text>}
         </View>
-        <ChevronRight size={20} color={couleurs.encre2} />
+        {offre.photoUrl ? (
+          <Image source={adresseImage(offre.photoUrl)} style={styles.vignette} contentFit="cover" />
+        ) : (
+          <ChevronRight size={20} color={couleurs.encre2} />
+        )}
       </Pressable>
     </Link>
   );
@@ -50,6 +56,7 @@ const styles = StyleSheet.create({
   jour: { fontFamily: polices.titre, fontSize: 22, lineHeight: 24, color: couleurs.encre },
   mois: { fontFamily: polices.texteGras, fontSize: 12, color: couleurs.encre2 },
   textes: { flex: 1, gap: 2 },
+  vignette: { width: 64, height: 58, borderRadius: 4, backgroundColor: couleurs.trait },
   intitule: { fontFamily: polices.texteGras, fontSize: 16, color: couleurs.encre },
   cloturee: {
     alignSelf: 'flex-start',

@@ -1,14 +1,25 @@
 import { libellesTypeStructure, type OffreDetail } from '@ramdam/shared';
 import { router, useLocalSearchParams } from 'expo-router';
 import { BadgeCheck, CalendarDays, GraduationCap, MapPin } from 'lucide-react-native';
+import { Image } from 'expo-image';
 import { useState, type ReactNode } from 'react';
-import { ActivityIndicator, Linking, ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Linking,
+  Modal,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { Bouton } from '@/components/bouton';
 import { MessageErreur } from '@/components/message-erreur';
 import { couleurs, polices } from '@/constants/theme';
 import { useRequete } from '@/hooks/use-requete';
 import { appeler, ErreurApi } from '@/lib/api';
 import { confirmer } from '@/lib/confirmer';
+import { adresseImage } from '@/lib/images';
 import { periode } from '@/lib/format';
 import { useSession } from '@/session/session-context';
 
@@ -18,6 +29,8 @@ export default function DetailOffre() {
   const { donnees: offre, erreur, recharger } = useRequete<OffreDetail>(`/offres/${id}`);
   const [action, setAction] = useState<'statut' | 'supprimer' | null>(null);
   const [erreurAction, setErreurAction] = useState<string | null>(null);
+  // Photo affichée en grand, ou null.
+  const [photoOuverte, setPhotoOuverte] = useState<string | null>(null);
 
   if (erreur) {
     return (
@@ -78,6 +91,31 @@ export default function DetailOffre() {
 
   return (
     <ScrollView contentContainerStyle={styles.page}>
+      {/* Photos du séjour : une bande qui défile ; un appui agrandit la photo. */}
+      {offre.photos.length > 0 && (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.horsMarge}
+          contentContainerStyle={styles.photos}
+        >
+          {offre.photos.map((photo, position) => (
+            <Pressable
+              key={photo.id}
+              onPress={() => setPhotoOuverte(photo.url)}
+              accessibilityRole="imagebutton"
+              accessibilityLabel={`Agrandir la photo ${position + 1} sur ${offre.photos.length}`}
+            >
+              <Image
+                source={adresseImage(photo.url)}
+                style={[styles.photo, offre.photos.length === 1 && styles.photoSeule]}
+                contentFit="cover"
+              />
+            </Pressable>
+          ))}
+        </ScrollView>
+      )}
+
       {cloturee && (
         <Text style={styles.bandeau}>
           Offre clôturée : le poste est pourvu, elle n’apparaît plus dans la liste.
@@ -152,6 +190,27 @@ export default function DetailOffre() {
           />
         </View>
       )}
+
+      <Modal
+        visible={photoOuverte !== null}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setPhotoOuverte(null)}
+      >
+        <Pressable
+          style={styles.voile}
+          onPress={() => setPhotoOuverte(null)}
+          accessibilityLabel="Fermer la photo"
+        >
+          {photoOuverte && (
+            <Image
+              source={adresseImage(photoOuverte)}
+              style={styles.photoPleine}
+              contentFit="contain"
+            />
+          )}
+        </Pressable>
+      </Modal>
     </ScrollView>
   );
 }
@@ -181,6 +240,17 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingBottom: 40,
   },
+  horsMarge: { marginHorizontal: -20, marginTop: -4 },
+  photos: { gap: 8, paddingHorizontal: 20 },
+  photo: { width: 260, height: 190, borderRadius: 8, backgroundColor: couleurs.trait },
+  photoSeule: { width: 680, maxWidth: '100%', height: 240 },
+  voile: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(30, 26, 22, 0.9)',
+  },
+  photoPleine: { width: '100%', height: '80%' },
   bandeau: {
     padding: 12,
     borderRadius: 6,

@@ -8,8 +8,11 @@ import {
   Post,
   Put,
   Query,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import {
   filtresOffresSchema,
   offreSchema,
@@ -21,6 +24,7 @@ import { UtilisateurConnecte } from '../auth/utilisateur-connecte.decorator.js';
 import { IdentifiantPipe } from '../commun/identifiant.pipe.js';
 import { Roles, RolesGuard } from '../commun/roles.guard.js';
 import { ZodValidationPipe } from '../commun/zod-validation.pipe.js';
+import { fichierImage, TAILLE_MAX_IMAGE } from '../images/fichier-image.pipe.js';
 import { OffresService } from './offres.service.js';
 
 // Lire les offres : tout utilisateur connecté.
@@ -98,5 +102,29 @@ export class OffresController {
     @UtilisateurConnecte() utilisateur: UtilisateurJwt,
   ) {
     return this.offresService.supprimer(id, utilisateur);
+  }
+
+  // ---------- Photos (envoyées en multipart/form-data, champ « image »), comme pour les fiches ----------
+
+  @Post(':id/photos')
+  @Roles('DIRECTEUR')
+  @UseInterceptors(FileInterceptor('image', { limits: { fileSize: TAILLE_MAX_IMAGE } }))
+  ajouterPhoto(
+    @Param('id', IdentifiantPipe) id: string,
+    @UploadedFile(fichierImage) fichier: Express.Multer.File,
+    @UtilisateurConnecte() utilisateur: UtilisateurJwt,
+  ) {
+    return this.offresService.ajouterPhoto(id, fichier.buffer, utilisateur);
+  }
+
+  @Delete(':id/photos/:photoId')
+  @Roles('DIRECTEUR')
+  @HttpCode(204)
+  retirerPhoto(
+    @Param('id', IdentifiantPipe) id: string,
+    @Param('photoId', IdentifiantPipe) photoId: string,
+    @UtilisateurConnecte() utilisateur: UtilisateurJwt,
+  ) {
+    return this.offresService.retirerPhoto(id, photoId, utilisateur);
   }
 }

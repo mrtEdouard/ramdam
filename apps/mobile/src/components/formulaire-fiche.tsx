@@ -17,6 +17,7 @@ import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Bouton } from '@/components/bouton';
 import { ChampBulles } from '@/components/champ-bulles';
+import { ChampPhotos } from '@/components/champ-photos';
 import { ChampTexte } from '@/components/champ-texte';
 import { MessageErreur } from '@/components/message-erreur';
 import { Puce } from '@/components/puce';
@@ -105,7 +106,6 @@ export function FormulaireFiche({ fiche, enregistrer, termine }: Props) {
   // Une fiche déjà publiée ne redevient pas brouillon : un seul bouton « Enregistrer ».
   const dejaPubliee = fiche !== undefined && fiche.statut !== 'BROUILLON';
   const erreurs = erreursDuFormulaire(creerFicheSchema, versDto(saisie, true));
-  const placesGalerie = PHOTOS_PAR_FICHE - photosGardees.length - nouvellesPhotos.length;
 
   function erreurDe(champ: Champ) {
     if (erreursServeur[champ]) {
@@ -149,25 +149,6 @@ export function FormulaireFiche({ fiche, enregistrer, termine }: Props) {
     if (!choix.canceled) {
       try {
         setCouverture({ locale: await preparerPhoto(choix.assets[0]) });
-      } catch (e) {
-        setErreurGenerale((e as Error).message);
-      }
-    }
-  }
-
-  async function ajouterPhotos() {
-    const choix = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      allowsMultipleSelection: true,
-      selectionLimit: placesGalerie,
-      quality: 0.85,
-    });
-    if (!choix.canceled) {
-      try {
-        const preparees = await Promise.all(
-          choix.assets.slice(0, placesGalerie).map(preparerPhoto),
-        );
-        setNouvellesPhotos([...nouvellesPhotos, ...preparees]);
       } catch (e) {
         setErreurGenerale((e as Error).message);
       }
@@ -366,40 +347,15 @@ export function FormulaireFiche({ fiche, enregistrer, termine }: Props) {
         {...lier('deroulement')}
       />
 
-      <View style={styles.groupe}>
-        <Text style={styles.libelle}>
-          Photos{' '}
-          <Text style={styles.compte}>
-            ({PHOTOS_PAR_FICHE - placesGalerie}/{PHOTOS_PAR_FICHE})
-          </Text>
-        </Text>
-        <View style={styles.galerie}>
-          {photosGardees.map((photo) => (
-            <Vignette
-              key={photo.id}
-              source={adresseImage(photo.url)}
-              retirer={() => setPhotosGardees(photosGardees.filter((p) => p.id !== photo.id))}
-            />
-          ))}
-          {nouvellesPhotos.map((photo) => (
-            <Vignette
-              key={photo}
-              source={{ uri: photo }}
-              retirer={() => setNouvellesPhotos(nouvellesPhotos.filter((p) => p !== photo))}
-            />
-          ))}
-          {placesGalerie > 0 && (
-            <Pressable
-              onPress={ajouterPhotos}
-              style={[styles.vignette, styles.ajoutVignette]}
-              accessibilityRole="button"
-              accessibilityLabel="Ajouter des photos à la galerie"
-            >
-              <ImagePlus size={24} color={couleurs.corail} />
-            </Pressable>
-          )}
-        </View>
-      </View>
+      <ChampPhotos
+        libelle="Photos"
+        maximum={PHOTOS_PAR_FICHE}
+        photosGardees={photosGardees}
+        nouvellesPhotos={nouvellesPhotos}
+        changerGardees={setPhotosGardees}
+        changerNouvelles={setNouvellesPhotos}
+        signalerErreur={setErreurGenerale}
+      />
 
       {erreurGenerale && <MessageErreur message={erreurGenerale} />}
 
@@ -429,23 +385,6 @@ export function FormulaireFiche({ fiche, enregistrer, termine }: Props) {
   );
 }
 
-function Vignette({ source, retirer }: { source: ImageSource; retirer: () => void }) {
-  return (
-    <View>
-      <Image source={source} style={styles.vignette} contentFit="cover" />
-      <Pressable
-        onPress={retirer}
-        style={styles.retirerVignette}
-        hitSlop={8}
-        accessibilityRole="button"
-        accessibilityLabel="Retirer cette photo"
-      >
-        <X size={14} color={couleurs.surface} strokeWidth={2.5} />
-      </Pressable>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   page: {
     width: '100%',
@@ -457,7 +396,6 @@ const styles = StyleSheet.create({
   },
   groupe: { gap: 8 },
   libelle: { fontFamily: polices.texteGras, fontSize: 15, color: couleurs.encre },
-  compte: { fontFamily: polices.texte, color: couleurs.encre2 },
   puces: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   erreur: { fontFamily: polices.texteMoyen, fontSize: 14, color: couleurs.erreur },
   ligne: { flexDirection: 'row', gap: 12 },
@@ -492,27 +430,6 @@ const styles = StyleSheet.create({
     backgroundColor: couleurs.surface,
   },
   texteActionPhoto: { fontFamily: polices.texteGras, fontSize: 14, color: couleurs.encre },
-  galerie: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-  vignette: { width: 92, height: 92, borderRadius: 8, backgroundColor: couleurs.trait },
-  ajoutVignette: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1.5,
-    borderStyle: 'dashed',
-    borderColor: couleurs.trait,
-    backgroundColor: couleurs.surface,
-  },
-  retirerVignette: {
-    position: 'absolute',
-    top: 6,
-    right: 6,
-    width: 24,
-    height: 24,
-    borderRadius: 6,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(28, 26, 51, 0.75)',
-  },
   boutons: { gap: 10 },
   note: { fontFamily: polices.texte, fontSize: 14, color: couleurs.encre2, textAlign: 'center' },
 });

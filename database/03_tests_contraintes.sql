@@ -219,6 +219,14 @@ BEGIN
 END;
 $$;
 
+-- RG-27 : 6 photos au plus par offre ; la 7e est refusée
+INSERT INTO photo_offre (offre_id, url)
+SELECT '30000000-0000-0000-0000-000000000001', '/images/test-' || n || '.webp'
+FROM generate_series(1, 6) AS n;
+SELECT pg_temp.doit_echouer('RG-27 septième photo sur une offre',
+  $q$INSERT INTO photo_offre (offre_id, url)
+     VALUES ('30000000-0000-0000-0000-000000000001', '/images/test-7.webp')$q$);
+
 -- Sécurité : le rôle applicatif ne peut pas modifier l'XP lui-même
 SET LOCAL ROLE ramdam_app;
 SELECT pg_temp.doit_echouer('Sécurité : ramdam_app modifie le total d''XP',

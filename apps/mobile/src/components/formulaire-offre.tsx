@@ -1,6 +1,7 @@
 import {
   libellesTypeStructure,
   offreSchema,
+  PHOTOS_PAR_OFFRE,
   regions,
   suggestionsDiplome,
   typesStructure,
@@ -12,12 +13,15 @@ import {
 import { useState, type ReactNode } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Bouton } from '@/components/bouton';
+import { CarteRegions } from '@/components/carte-regions';
+import { ChampPhotos, type PhotoEnLigne } from '@/components/champ-photos';
 import { ChampTexte } from '@/components/champ-texte';
 import { MessageErreur } from '@/components/message-erreur';
 import { Puce } from '@/components/puce';
 import { couleurs, polices } from '@/constants/theme';
-import { ErreurApi } from '@/lib/api';
+import { appeler, envoyerPhoto, ErreurApi } from '@/lib/api';
 import { erreursDuFormulaire } from '@/lib/validation';
+import { useSession } from '@/session/session-context';
 
 // Les dates sont saisies à la française (14/07/2027) et envoyées à l'API en AAAA-MM-JJ.
 // Une saisie incomplète est envoyée telle quelle : Zod affichera « Date invalide ».
@@ -63,6 +67,7 @@ type Props = {
 
 // Formulaire commun à la publication et à la modification d'une offre (réservé aux Directeurs).
 export function FormulaireOffre({ offre, enregistrer, termine }: Props) {
+  const { session } = useSession();
   const [saisie, setSaisie] = useState<Saisie>({
     intitule: offre?.intitule ?? '',
     structure: offre?.structure ?? '',
@@ -79,6 +84,9 @@ export function FormulaireOffre({ offre, enregistrer, termine }: Props) {
   const [erreursServeur, setErreursServeur] = useState<Record<string, string>>({});
   const [erreurGenerale, setErreurGenerale] = useState<string | null>(null);
   const [envoi, setEnvoi] = useState(false);
+  // Photos : celles déjà en ligne (on peut en retirer) et les nouvelles, envoyées après les champs.
+  const [photosGardees, setPhotosGardees] = useState<PhotoEnLigne[]>(offre?.photos ?? []);
+  const [nouvellesPhotos, setNouvellesPhotos] = useState<string[]>([]);
 
   // Même schéma Zod que l'API : les erreurs s'affichent avant même d'envoyer.
   const erreurs = erreursDuFormulaire(offreSchema, versDto(saisie));
@@ -114,7 +122,22 @@ export function FormulaireOffre({ offre, enregistrer, termine }: Props) {
     erreur: erreurDe(champ),
   });
 
+  // Après l'enregistrement des champs, on aligne les photos en ligne sur ce qui est affiché.
+  async function synchroniserPhotos(id: string, jeton: string) {
+    const retirees = (offre?.photos ?? []).filter((p) => !photosGardees.some((g) => g.id === p.id));
+    for (const photo of retirees) {
+      await appeler('DELETE', `/offres/${id}/photos/${photo.id}`, jeton);
+    }
+    // Une photo après l'autre : l'ordre d'arrivée est l'ordre de la galerie.
+    for (const photo of nouvellesPhotos) {
+      await envoyerPhoto('POST', `/offres/${id}/photos`, jeton, photo);
+    }
+  }
+
   async function valider() {
+    if (!session) {
+      return;
+    }
     setSoumis(true);
     setErreurGenerale(null);
     const resultat = offreSchema.safeParse(versDto(saisie));
@@ -123,13 +146,20 @@ export function FormulaireOffre({ offre, enregistrer, termine }: Props) {
       return;
     }
     setEnvoi(true);
+    let id: string | undefined;
     try {
-      termine(await enregistrer(resultat.data));
+      id = await enregistrer(resultat.data);
+      await synchroniserPhotos(id, session.jeton);
+      termine(id);
     } catch (e) {
       if (e instanceof ErreurApi && Object.keys(e.champs).length > 0) {
         setErreursServeur(e.champs);
       }
-      setErreurGenerale(e instanceof ErreurApi ? e.message : 'Une erreur est survenue.');
+      const message = e instanceof ErreurApi ? e.message : 'Une erreur est survenue.';
+      // Si l'offre est enregistrée mais pas une photo, on le dit clairement.
+      setErreurGenerale(
+        id ? `Offre enregistrée, mais une photo n’a pas pu être envoyée : ${message}` : message,
+      );
     } finally {
       setEnvoi(false);
     }
@@ -161,16 +191,11 @@ export function FormulaireOffre({ offre, enregistrer, termine }: Props) {
         ))}
       </Groupe>
 
-      <Groupe libelle="Région" erreur={erreurDe('region')}>
-        {regions.map((r) => (
-          <Puce
-            key={r}
-            libelle={r}
-            choisie={saisie.region === r}
-            onPress={() => modifier('region', r)}
-          />
-        ))}
-      </Groupe>
+      <View style={styles.groupe}>
+        <Text style={styles.libelle}>Région</Text>
+        <CarteRegions choisie={saisie.region} choisir={(r) => modifier('region', r)} />
+        {erreurDe('region') && <Text style={styles.erreur}>{erreurDe('region')}</Text>}
+      </View>
 
       <View style={styles.ligne}>
         <View style={styles.moitie}>
@@ -235,6 +260,17 @@ export function FormulaireOffre({ offre, enregistrer, termine }: Props) {
           )
         }
         {...lier('contactExterne')}
+      />
+
+      <ChampPhotos
+        libelle="Photos du séjour ou de la structure"
+        aide="Les lieux, une activité, l’hébergement… La première sert de vignette."
+        maximum={PHOTOS_PAR_OFFRE}
+        photosGardees={photosGardees}
+        nouvellesPhotos={nouvellesPhotos}
+        changerGardees={setPhotosGardees}
+        changerNouvelles={setNouvellesPhotos}
+        signalerErreur={setErreurGenerale}
       />
 
       {erreurGenerale && <MessageErreur message={erreurGenerale} />}

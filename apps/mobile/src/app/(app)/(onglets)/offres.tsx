@@ -1,6 +1,5 @@
 import {
   libellesTypeStructure,
-  regions,
   typesStructure,
   type OffreResume,
   type PageDOffres,
@@ -8,11 +7,12 @@ import {
   type TypeStructure,
 } from '@ramdam/shared';
 import { router, useFocusEffect } from 'expo-router';
-import { Plus } from 'lucide-react-native';
+import { ChevronDown, MapPin, Plus, X } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
+  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -20,6 +20,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { CarteRegions } from '@/components/carte-regions';
 import { LigneOffre } from '@/components/ligne-offre';
 import { MessageErreur } from '@/components/message-erreur';
 import { Puce } from '@/components/puce';
@@ -142,12 +143,7 @@ export default function Offres() {
 
       {vue === 'toutes' && (
         <>
-          <Filtres
-            tous="Toutes les régions"
-            choix={regions.map((r) => ({ valeur: r, libelle: r }))}
-            choisi={region}
-            choisir={setRegion}
-          />
+          <FiltreRegion region={region} choisir={setRegion} />
           <Filtres
             tous="Toutes les dates"
             choix={prochainsMois()}
@@ -233,6 +229,75 @@ function Filtres<T extends string>({ tous, choix, choisi, choisir }: PropsFiltre
   );
 }
 
+// Filtre par région : un bouton qui ouvre la carte de France, comme sur les sites d'annonces.
+function FiltreRegion({
+  region,
+  choisir,
+}: {
+  region: Region | undefined;
+  choisir: (region: Region | undefined) => void;
+}) {
+  const [ouverte, setOuverte] = useState(false);
+
+  function choisirEtFermer(valeur: Region | undefined) {
+    choisir(valeur);
+    setOuverte(false);
+  }
+
+  return (
+    <>
+      <Pressable
+        onPress={() => setOuverte(true)}
+        style={[styles.boutonRegion, region && styles.boutonRegionChoisi]}
+        accessibilityRole="button"
+        accessibilityLabel={`Région : ${region ?? 'toutes'}. Ouvrir la carte`}
+      >
+        <MapPin size={18} color={region ? couleurs.surface : couleurs.encre} />
+        <Text style={[styles.texteRegion, region && styles.texteRegionChoisi]} numberOfLines={1}>
+          {region ?? 'Toutes les régions'}
+        </Text>
+        <ChevronDown size={18} color={region ? couleurs.surface : couleurs.encre2} />
+      </Pressable>
+
+      <Modal
+        visible={ouverte}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setOuverte(false)}
+      >
+        {/* Un appui à côté de la fenêtre la referme. */}
+        <Pressable
+          style={styles.voile}
+          onPress={() => setOuverte(false)}
+          accessibilityLabel="Fermer la carte"
+        >
+          <Pressable style={styles.fenetre} onPress={() => {}}>
+            <View style={styles.enteteFenetre}>
+              <Text style={styles.titreFenetre} accessibilityRole="header">
+                Où cherches-tu ?
+              </Text>
+              <Pressable
+                onPress={() => setOuverte(false)}
+                hitSlop={10}
+                accessibilityRole="button"
+                accessibilityLabel="Fermer"
+              >
+                <X size={22} color={couleurs.encre} />
+              </Pressable>
+            </View>
+            <CarteRegions choisie={region} choisir={choisirEtFermer} />
+            <Puce
+              libelle="Toutes les régions"
+              choisie={!region}
+              onPress={() => choisirEtFermer(undefined)}
+            />
+          </Pressable>
+        </Pressable>
+      </Modal>
+    </>
+  );
+}
+
 const MARGE = 20;
 
 const styles = StyleSheet.create({
@@ -258,6 +323,49 @@ const styles = StyleSheet.create({
   },
   textePublier: { fontFamily: polices.texteGras, fontSize: 15, color: couleurs.surface },
   vues: { flexDirection: 'row', gap: 8 },
+  boutonRegion: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    maxWidth: '100%',
+    gap: 8,
+    minHeight: 40,
+    paddingHorizontal: 14,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: couleurs.encre,
+    backgroundColor: couleurs.surface,
+  },
+  boutonRegionChoisi: { backgroundColor: couleurs.encre },
+  texteRegion: {
+    flexShrink: 1,
+    fontFamily: polices.texteGras,
+    fontSize: 15,
+    color: couleurs.encre,
+  },
+  texteRegionChoisi: { color: couleurs.surface },
+  voile: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 16,
+    backgroundColor: 'rgba(30, 26, 22, 0.45)',
+  },
+  fenetre: {
+    width: '100%',
+    maxWidth: 480,
+    gap: 14,
+    padding: 18,
+    borderRadius: 10,
+    backgroundColor: couleurs.fond,
+  },
+  enteteFenetre: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  titreFenetre: {
+    fontFamily: polices.titre,
+    fontSize: 22,
+    letterSpacing: -0.5,
+    color: couleurs.encre,
+  },
   horsMarge: { marginHorizontal: -MARGE },
   puces: { gap: 8, paddingHorizontal: MARGE },
   total: { fontFamily: polices.texteMoyen, fontSize: 14, color: couleurs.encre2 },

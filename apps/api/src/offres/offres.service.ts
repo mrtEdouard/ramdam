@@ -1,24 +1,39 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import type {
-  FiltresOffres,
-  OffreDetail,
-  OffreDto,
-  OffreResume,
-  PageDOffres,
-  StatutOffre,
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import {
+  PHOTOS_PAR_OFFRE,
+  type FiltresOffres,
+  type OffreDetail,
+  type OffreDto,
+  type OffreResume,
+  type PageDOffres,
+  type PhotoOffre,
+  type StatutOffre,
 } from '@ramdam/shared';
 import type { UtilisateurJwt } from '../auth/jwt-auth.guard.js';
 import type { Prisma } from '../generated/prisma/client.js';
+import { StockageImages } from '../images/stockage-images.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 
-const AVEC_DIRECTEUR = { utilisateur: { select: { pseudo: true } } } as const;
+// On lit toujours le pseudo du Directeur et les photos, de la plus ancienne à la plus récente.
+const AVEC_DIRECTEUR = {
+  utilisateur: { select: { pseudo: true } },
+  photo_offre: { select: { id: true, url: true }, orderBy: { ajoutee_le: 'asc' } },
+} as const;
 type OffreLue = Prisma.offreGetPayload<{ include: typeof AVEC_DIRECTEUR }>;
 
 // Offres de recrutement. Tout le monde les lit ; seuls les Directeurs les publient (RG-15),
 // et seul le Directeur qui a publié une offre peut la modifier, la clôturer ou la supprimer.
 @Injectable()
 export class OffresService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly images: StockageImages,
+  ) {}
 
   // Les offres ouvertes et pas encore terminées, filtrées par région, type et mois.
   async lister(filtres: FiltresOffres): Promise<PageDOffres> {
@@ -100,7 +115,41 @@ export class OffresService {
 
   async supprimer(id: string, utilisateur: UtilisateurJwt) {
     await this.offreDe(id, utilisateur);
+    const photos = await this.prisma.photo_offre.findMany({ where: { offre_id: id } });
+    // La base supprime les lignes des photos avec l'offre (ON DELETE CASCADE) ;
+    // les fichiers, eux, sont effacés du disque ici.
     await this.prisma.offre.delete({ where: { id } });
+    await Promise.all(photos.map((photo) => this.images.supprimer(photo.url)));
+  }
+
+  // ---------- Photos (RG-27) ----------
+
+  async ajouterPhoto(
+    id: string,
+    contenu: Buffer,
+    utilisateur: UtilisateurJwt,
+  ): Promise<PhotoOffre> {
+    await this.offreDe(id, utilisateur);
+    const nombre = await this.prisma.photo_offre.count({ where: { offre_id: id } });
+    if (nombre >= PHOTOS_PAR_OFFRE) {
+      throw new BadRequestException(`${PHOTOS_PAR_OFFRE} photos maximum par offre`);
+    }
+    const url = await this.images.enregistrer(contenu);
+    return this.prisma.photo_offre.create({
+      data: { offre_id: id, url },
+      select: { id: true, url: true },
+    });
+  }
+
+  async retirerPhoto(id: string, photoId: string, utilisateur: UtilisateurJwt) {
+    await this.offreDe(id, utilisateur);
+    // La photo doit appartenir à cette offre : on ne supprime pas la photo d'une autre offre.
+    const photo = await this.prisma.photo_offre.findFirst({ where: { id: photoId, offre_id: id } });
+    if (!photo) {
+      throw new NotFoundException('Photo introuvable');
+    }
+    await this.prisma.photo_offre.delete({ where: { id: photoId } });
+    await this.images.supprimer(photo.url);
   }
 
   // L'offre existe et appartient au Directeur connecté, sinon 404 ou 403.
@@ -147,6 +196,7 @@ function versResume(offre: OffreLue): OffreResume {
     dateFin: versJour(offre.date_fin),
     directeur: offre.utilisateur.pseudo,
     statut: offre.statut,
+    photoUrl: offre.photo_offre[0]?.url ?? null,
   };
 }
 
@@ -156,6 +206,7 @@ function versDetail(offre: OffreLue, utilisateur: UtilisateurJwt): OffreDetail {
     description: offre.description,
     diplomeRequis: offre.diplome_requis,
     contactExterne: offre.contact_externe,
+    photos: offre.photo_offre,
     estAMoi: offre.directeur_id === utilisateur.sub,
   };
 }
