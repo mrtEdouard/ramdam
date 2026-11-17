@@ -1,4 +1,4 @@
-import type { FicheResume, OffreResume, PageDeFiches, TypeFiche } from '@ramdam/shared';
+import type { FicheResume, PageDeFiches, PageDOffres, TypeFiche } from '@ramdam/shared';
 import { Link } from 'expo-router';
 import {
   Bell,
@@ -37,7 +37,7 @@ export default function Accueil() {
   const { session } = useSession();
   const aLaUne = useRequete<FicheResume | null>('/fiches/a-la-une');
   const recentes = useRequete<PageDeFiches>('/fiches?parPage=9');
-  const offres = useRequete<OffreResume[]>('/offres?nombre=3');
+  const offres = useRequete<PageDOffres>('/offres?parPage=3');
   // Rechargé à chaque retour sur l'accueil : la cloche se remet à zéro après la lecture.
   const nonLues = useRequete<{ nombre: number }>('/notifications/non-lues').donnees?.nombre ?? 0;
   if (!session) {
@@ -142,12 +142,12 @@ export default function Accueil() {
           <Text style={styles.vide}>Aucune autre activité publiée pour l'instant.</Text>
         )}
 
-        <EnTeteSection titre="Offres récentes publiées" lien="/offres" />
-        {offres.donnees?.length === 0 ? (
+        <EnTeteSection titre="Prochaines offres" lien="/offres" />
+        {offres.donnees?.offres.length === 0 ? (
           <Text style={styles.vide}>Aucune offre ouverte pour l'instant.</Text>
         ) : (
           <View style={styles.panneauOffres}>
-            {offres.donnees?.map((offre, position) => (
+            {offres.donnees?.offres.map((offre, position) => (
               <Fragment key={offre.id}>
                 {position > 0 && <View style={styles.separateur} />}
                 <LigneOffre offre={offre} />

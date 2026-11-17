@@ -3,10 +3,9 @@ import { Link } from 'expo-router';
 import { ChevronRight } from 'lucide-react-native';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { couleurs, polices } from '@/constants/theme';
-
 import { jourEtMois, periode } from '@/lib/format';
 
-// Une offre dans la liste de l'accueil, présentée comme un agenda : la date de début en premier.
+// Une offre dans une liste, présentée comme un agenda : la date de début en premier.
 export function LigneOffre({ offre }: { offre: OffreResume }) {
   const debut = new Date(offre.dateDebut);
   const { jour, mois } = jourEtMois(debut);
@@ -15,7 +14,7 @@ export function LigneOffre({ offre }: { offre: OffreResume }) {
     <Link href={{ pathname: '/offres/[id]', params: { id: offre.id } }} asChild>
       <Pressable
         style={styles.ligne}
-        accessibilityLabel={`${offre.intitule}, ${offre.structure}, ${offre.region}, ${periode(debut, new Date(offre.dateFin))}`}
+        accessibilityLabel={`${offre.intitule}, ${offre.structure}, ${offre.region}, ${periode(debut, new Date(offre.dateFin))}${offre.statut === 'CLOTUREE' ? ', clôturée' : ''}`}
       >
         <View style={styles.date}>
           <Text style={styles.jour}>{jour}</Text>
@@ -28,6 +27,7 @@ export function LigneOffre({ offre }: { offre: OffreResume }) {
           <Text style={styles.details} numberOfLines={1}>
             {offre.structure} · {offre.region}
           </Text>
+          {offre.statut === 'CLOTUREE' && <Text style={styles.cloturee}>Clôturée</Text>}
         </View>
         <ChevronRight size={20} color={couleurs.encre2} />
       </Pressable>
@@ -51,5 +51,17 @@ const styles = StyleSheet.create({
   mois: { fontFamily: polices.texteGras, fontSize: 12, color: couleurs.encre2 },
   textes: { flex: 1, gap: 2 },
   intitule: { fontFamily: polices.texteGras, fontSize: 16, color: couleurs.encre },
+  cloturee: {
+    alignSelf: 'flex-start',
+    marginTop: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 4,
+    overflow: 'hidden',
+    backgroundColor: couleurs.trait,
+    fontFamily: polices.texteGras,
+    fontSize: 12,
+    color: couleurs.encre2,
+  },
   details: { fontFamily: polices.texte, fontSize: 14, color: couleurs.encre2 },
 });

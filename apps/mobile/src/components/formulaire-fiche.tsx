@@ -117,6 +117,8 @@ export function FormulaireFiche({ fiche, enregistrer, termine }: Props) {
   function modifier<C extends Champ>(champ: C, valeur: Saisie[C]) {
     setSaisie({ ...saisie, [champ]: valeur });
     setErreursServeur({ ...erreursServeur, [champ]: '' });
+    // Le message général date du dernier envoi : il disparaît dès qu'on corrige.
+    setErreurGenerale(null);
   }
 
   // Propriétés communes aux champs texte : valeur, saisie, sortie du champ et erreur.

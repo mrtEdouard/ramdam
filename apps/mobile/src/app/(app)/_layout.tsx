@@ -26,14 +26,16 @@ export default function LayoutApp() {
         <Stack.Screen name="fiches/[id]/index" options={{ title: 'Fiche' }} />
         <Stack.Screen name="fiches/[id]/modifier" options={{ title: 'Modifier la fiche' }} />
         <Stack.Screen name="fiches/nouvelle" options={{ title: 'Nouvelle fiche' }} />
-        <Stack.Screen name="offres/[id]" options={{ title: 'Offre' }} />
+        <Stack.Screen name="offres/[id]/index" options={{ title: 'Offre' }} />
         <Stack.Screen name="profil" options={{ title: 'Profil' }} />
         <Stack.Screen name="profils/[pseudo]" options={{ title: 'Profil' }} />
         <Stack.Screen name="notifications" options={{ title: 'Notifications' }} />
-        {/* RG-15 : seuls les Directeurs peuvent ouvrir la création d'offre, même par un lien direct. */}
+        {/* RG-15 : seuls les Directeurs ouvrent la publication ou la modification d'une offre,
+            même par un lien direct (l'API vérifie aussi). */}
         <Stack.Protected guard={estDirecteur}>
           <Stack.Screen name="creer" options={{ title: 'Créer', presentation: 'modal' }} />
           <Stack.Screen name="offres/nouvelle" options={{ title: 'Nouvelle offre' }} />
+          <Stack.Screen name="offres/[id]/modifier" options={{ title: 'Modifier l’offre' }} />
         </Stack.Protected>
       </Stack>
       <BarreOnglets />
