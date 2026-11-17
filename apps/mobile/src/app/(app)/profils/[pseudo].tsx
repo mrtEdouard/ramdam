@@ -1,20 +1,29 @@
 import type { PageDeFiches, Profil } from '@ramdam/shared';
 import { useLocalSearchParams } from 'expo-router';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ChevronLeft, ChevronRight } from 'lucide-react-native';
+import { useState } from 'react';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { CarteProfil, CompteursProfil } from '@/components/carte-profil';
 import { LigneFiche } from '@/components/ligne-fiche';
 import { MessageErreur } from '@/components/message-erreur';
 import { couleurs, polices } from '@/constants/theme';
 import { useRequete } from '@/hooks/use-requete';
 
-// Profil public d'un animateur : son rang, ses compteurs et ses fiches publiées.
+// Nombre d'activités affichées par page sur un profil.
+const PAR_PAGE = 5;
+
+// Profil public d'un animateur : son rang, ses compteurs et ses fiches publiées, 5 par 5.
 export default function ProfilPublic() {
   const { pseudo } = useLocalSearchParams<{ pseudo: string }>();
   // encodeURIComponent : un pseudo peut contenir un point (« lea.anim »).
   const profil = useRequete<Profil>(`/profils/${encodeURIComponent(pseudo)}`);
+  const [page, setPage] = useState(1);
+  // Changer de page change l'adresse : useRequete recharge alors la bonne page.
+  // La pagination est faite par l'API (skip / take), on ne charge jamais plus de 5 fiches.
   const fiches = useRequete<PageDeFiches>(
-    `/fiches?auteur=${encodeURIComponent(pseudo)}&parPage=50`,
+    `/fiches?auteur=${encodeURIComponent(pseudo)}&parPage=${PAR_PAGE}&page=${page}`,
   );
+  const nbPages = fiches.donnees?.pages ?? 1;
 
   if (profil.erreur) {
     return (
@@ -38,6 +47,7 @@ export default function ProfilPublic() {
 
       <Text style={styles.titreSection} accessibilityRole="header">
         Ses activités
+        {fiches.donnees && fiches.donnees.total > 0 ? ` (${fiches.donnees.total})` : ''}
       </Text>
       {fiches.donnees?.fiches.length === 0 && (
         <Text style={styles.vide}>{pseudo} n’a pas encore publié d’activité.</Text>
@@ -45,7 +55,53 @@ export default function ProfilPublic() {
       {fiches.donnees?.fiches.map((fiche) => (
         <LigneFiche key={fiche.id} fiche={fiche} />
       ))}
+
+      {nbPages > 1 && (
+        <View style={styles.pagination}>
+          <BoutonPage
+            libelle="Précédentes"
+            actif={page > 1}
+            onPress={() => setPage(page - 1)}
+            icone="avant"
+          />
+          <Text style={styles.numeroPage}>
+            {page} / {nbPages}
+          </Text>
+          <BoutonPage
+            libelle="Suivantes"
+            actif={page < nbPages}
+            onPress={() => setPage(page + 1)}
+            icone="apres"
+          />
+        </View>
+      )}
     </ScrollView>
+  );
+}
+
+type PropsBoutonPage = {
+  libelle: string;
+  actif: boolean;
+  onPress: () => void;
+  icone: 'avant' | 'apres';
+};
+
+function BoutonPage({ libelle, actif, onPress, icone }: PropsBoutonPage) {
+  const couleur = actif ? couleurs.encre : couleurs.encre3;
+  return (
+    <Pressable
+      onPress={onPress}
+      disabled={!actif}
+      style={styles.boutonPage}
+      hitSlop={8}
+      accessibilityRole="button"
+      accessibilityState={{ disabled: !actif }}
+      accessibilityLabel={`Activités ${libelle.toLowerCase()}`}
+    >
+      {icone === 'avant' && <ChevronLeft size={18} color={couleur} />}
+      <Text style={[styles.texteBoutonPage, { color: couleur }]}>{libelle}</Text>
+      {icone === 'apres' && <ChevronRight size={18} color={couleur} />}
+    </Pressable>
   );
 }
 
@@ -73,4 +129,15 @@ const styles = StyleSheet.create({
     color: couleurs.encre,
   },
   vide: { fontFamily: polices.texte, fontSize: 15, color: couleurs.encre2 },
+  pagination: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderColor: couleurs.trait,
+  },
+  boutonPage: { flexDirection: 'row', alignItems: 'center', gap: 2, minHeight: 44 },
+  texteBoutonPage: { fontFamily: polices.texteGras, fontSize: 15 },
+  numeroPage: { fontFamily: polices.texteMoyen, fontSize: 15, color: couleurs.encre2 },
 });

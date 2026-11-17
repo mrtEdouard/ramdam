@@ -63,7 +63,9 @@ export class FichesService {
       this.prisma.fiche.findMany({
         where,
         include: AVEC_AUTEUR_ET_AIMES,
-        orderBy: { publiee_le: 'desc' },
+        // L'id départage deux fiches publiées au même instant : sans lui, l'ordre ne serait pas
+        // garanti et une fiche pourrait apparaître sur deux pages (ou sur aucune).
+        orderBy: [{ publiee_le: 'desc' }, { id: 'asc' }],
         skip: (filtres.page - 1) * filtres.parPage,
         take: filtres.parPage,
       }),
