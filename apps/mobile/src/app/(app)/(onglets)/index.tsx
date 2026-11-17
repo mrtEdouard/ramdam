@@ -1,4 +1,4 @@
-import type { FicheResume, PageDeFiches, PageDOffres, TypeFiche } from '@ramdam/shared';
+import type { FicheResume, PageDeFiches, PageDOffres, Profil, TypeFiche } from '@ramdam/shared';
 import { Link } from 'expo-router';
 import {
   Bell,
@@ -40,6 +40,8 @@ export default function Accueil() {
   const offres = useRequete<PageDOffres>('/offres?parPage=3');
   // Rechargé à chaque retour sur l'accueil : la cloche se remet à zéro après la lecture.
   const nonLues = useRequete<{ nombre: number }>('/notifications/non-lues').donnees?.nombre ?? 0;
+  // Ma photo de profil, en haut à droite (rechargée au retour, après un changement de photo).
+  const monAvatar = useRequete<Profil>('/profils/moi').donnees?.avatarUrl;
   if (!session) {
     return null;
   }
@@ -71,7 +73,7 @@ export default function Accueil() {
             </Link>
             <Link href="/profil" asChild>
               <Pressable accessibilityRole="button" accessibilityLabel="Mon profil" hitSlop={8}>
-                <Avatar pseudo={pseudo} taille={40} />
+                <Avatar pseudo={pseudo} url={monAvatar} taille={40} />
               </Pressable>
             </Link>
           </View>

@@ -3,7 +3,7 @@ import type { Commentaire, CommentaireDto, CommentaireEnvoye, Reponse } from '@r
 import type { UtilisateurJwt } from '../auth/jwt-auth.guard.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 
-const AVEC_AUTEUR = { utilisateur: { select: { pseudo: true } } } as const;
+const AVEC_AUTEUR = { utilisateur: { select: { pseudo: true, avatar_url: true } } } as const;
 
 // Commentaires sous une fiche, avec un seul niveau de réponses (RG-11).
 // L'XP (+5, une fois par fiche, RG-25) et les notifications (RG-26) sont gérées par les
@@ -99,13 +99,14 @@ type LigneCommentaire = {
   auteur_id: string;
   contenu: string;
   cree_le: Date;
-  utilisateur: { pseudo: string };
+  utilisateur: { pseudo: string; avatar_url: string | null };
 };
 
 function versReponse(ligne: LigneCommentaire, utilisateur: UtilisateurJwt): Reponse {
   return {
     id: ligne.id,
     auteur: ligne.utilisateur.pseudo,
+    auteurAvatar: ligne.utilisateur.avatar_url,
     contenu: ligne.contenu,
     creeLe: ligne.cree_le.toISOString(),
     estAMoi: ligne.auteur_id === utilisateur.sub,

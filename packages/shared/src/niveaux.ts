@@ -31,6 +31,9 @@ export function niveauPour(xp: number) {
 export type Profil = {
   pseudo: string;
   role: 'ANIMATEUR' | 'DIRECTEUR' | 'ADMIN';
+  bio: string | null;
+  // Photo de profil (/images/….webp), ou null : l'app affiche alors les initiales.
+  avatarUrl: string | null;
   xp: number;
   membreDepuis: string;
   fichesPubliees: number;

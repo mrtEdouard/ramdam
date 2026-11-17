@@ -2,6 +2,7 @@ import { niveauPour, type Profil } from '@ramdam/shared';
 import { BadgeCheck } from 'lucide-react-native';
 import type { ReactNode } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { Avatar } from '@/components/avatar';
 import { Embleme } from '@/components/embleme';
 import { couleurs, polices } from '@/constants/theme';
 import { compteur, moisEtAnnee } from '@/lib/format';
@@ -17,8 +18,14 @@ export function CarteProfil({ profil, children }: { profil: Profil; children?: R
 
   return (
     <View style={styles.identite}>
-      <View accessibilityLabel={`Emblème niveau ${actuel.numero}, ${actuel.nom}`} accessible>
-        <Embleme niveau={actuel.numero} taille={220} />
+      <View>
+        <View accessibilityLabel={`Emblème niveau ${actuel.numero}, ${actuel.nom}`} accessible>
+          <Embleme niveau={actuel.numero} taille={220} />
+        </View>
+        {/* La photo de profil, en médaillon sur l'emblème de rang. */}
+        <View style={styles.medaillon}>
+          <Avatar pseudo={profil.pseudo} url={profil.avatarUrl} taille={76} />
+        </View>
       </View>
       <Text style={styles.rang}>
         Niveau {actuel.numero} · {actuel.nom}
@@ -39,6 +46,7 @@ export function CarteProfil({ profil, children }: { profil: Profil; children?: R
           · membre depuis {moisEtAnnee(new Date(profil.membreDepuis))}
         </Text>
       </View>
+      {profil.bio && <Text style={styles.bio}>{profil.bio}</Text>}
       {children}
     </View>
   );
@@ -78,6 +86,23 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 14,
     backgroundColor: couleurs.encre,
+  },
+  medaillon: {
+    position: 'absolute',
+    right: 4,
+    bottom: 6,
+    padding: 3,
+    borderRadius: 50,
+    backgroundColor: couleurs.encre,
+  },
+  bio: {
+    maxWidth: 420,
+    marginTop: 10,
+    fontFamily: polices.texte,
+    fontSize: 15,
+    lineHeight: 21,
+    textAlign: 'center',
+    color: '#E4DDD2',
   },
   rang: {
     fontFamily: polices.texteGras,

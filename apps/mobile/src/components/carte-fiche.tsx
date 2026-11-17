@@ -32,7 +32,7 @@ export function CarteFiche({ fiche }: { fiche: FicheResume }) {
           {fiche.ageMin}–{fiche.ageMax} ans · {duree(fiche.dureeMinutes)}
         </Text>
         <View style={styles.auteur}>
-          <Avatar pseudo={fiche.auteur} taille={22} />
+          <Avatar pseudo={fiche.auteur} url={fiche.auteurAvatar} taille={22} />
           <Text style={styles.pseudo} numberOfLines={1}>
             {fiche.auteur}
           </Text>

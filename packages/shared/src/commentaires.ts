@@ -16,6 +16,7 @@ export type CommentaireDto = z.infer<typeof commentaireSchema>;
 export type Reponse = {
   id: string;
   auteur: string;
+  auteurAvatar: string | null;
   contenu: string;
   creeLe: string;
   // Vrai si c'est le mien : je peux alors le supprimer.

@@ -141,6 +141,8 @@ export type FicheResume = {
   statut: 'BROUILLON' | 'PUBLIEE' | 'MASQUEE';
   publieeLe: string | null;
   auteur: string;
+  // Photo de profil de l'auteur, ou null (l'app affiche ses initiales).
+  auteurAvatar: string | null;
   aimes: number;
   imageUrl: string | null;
 };

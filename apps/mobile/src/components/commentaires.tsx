@@ -177,7 +177,7 @@ function Message({ message, petit = false, onRepondre, onSupprimer }: PropsMessa
         href={{ pathname: '/profils/[pseudo]', params: { pseudo: message.auteur } }}
         accessibilityLabel={`Profil de ${message.auteur}`}
       >
-        <Avatar pseudo={message.auteur} taille={petit ? 28 : 34} />
+        <Avatar pseudo={message.auteur} url={message.auteurAvatar} taille={petit ? 28 : 34} />
       </Link>
       <View style={styles.corps}>
         <Text style={styles.entete}>

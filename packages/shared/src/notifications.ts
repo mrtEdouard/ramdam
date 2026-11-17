@@ -5,6 +5,7 @@ export type Notification = {
   type: 'FICHE_AIMEE' | 'FICHE_EN_MALLE' | 'COMMENTAIRE' | 'REPONSE';
   // Pseudo de la personne qui a réagi : il mène à son profil public.
   acteur: string;
+  acteurAvatar: string | null;
   fiche: { id: string; titre: string };
   lue: boolean;
   creeLe: string;

@@ -113,7 +113,7 @@ function LigneNotification({ notification }: { notification: Notification }) {
     <View style={[styles.ligne, !notification.lue && styles.nonLue]}>
       <Link href={profil} asChild>
         <Pressable accessibilityRole="link" accessibilityLabel={`Profil de ${notification.acteur}`}>
-          <Avatar pseudo={notification.acteur} taille={44} />
+          <Avatar pseudo={notification.acteur} url={notification.acteurAvatar} taille={44} />
           <View style={[styles.pastille, { backgroundColor: couleur }]}>
             <Icone
               size={11}

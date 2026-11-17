@@ -14,7 +14,9 @@ export class NotificationsService {
     const notifications = await this.prisma.notification.findMany({
       where: { destinataire_id: utilisateur.sub },
       include: {
-        utilisateur_notification_acteur_idToutilisateur: { select: { pseudo: true } },
+        utilisateur_notification_acteur_idToutilisateur: {
+          select: { pseudo: true, avatar_url: true },
+        },
         fiche: { select: { id: true, titre: true } },
       },
       orderBy: { cree_le: 'desc' },
@@ -24,6 +26,7 @@ export class NotificationsService {
       id: notification.id,
       type: notification.type,
       acteur: notification.utilisateur_notification_acteur_idToutilisateur.pseudo,
+      acteurAvatar: notification.utilisateur_notification_acteur_idToutilisateur.avatar_url,
       fiche: notification.fiche,
       lue: notification.lue_le !== null,
       creeLe: notification.cree_le.toISOString(),

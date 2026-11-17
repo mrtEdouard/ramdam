@@ -1,6 +1,6 @@
 import { niveauPour, niveaux, raisonXp, type MouvementXp, type Profil } from '@ramdam/shared';
-import { useFocusEffect } from 'expo-router';
-import { Check, ChevronDown, ChevronUp, Info, Lock, LogOut, X } from 'lucide-react-native';
+import { router, useFocusEffect } from 'expo-router';
+import { Check, ChevronDown, ChevronUp, Info, Lock, LogOut, Pencil, X } from 'lucide-react-native';
 import { useCallback, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp, FadeOut } from 'react-native-reanimated';
@@ -116,6 +116,17 @@ export default function PageProfil() {
       </CarteProfil>
 
       <CompteursProfil profil={profil} />
+
+      <Pressable
+        onPress={() => router.push('/modifier-profil')}
+        style={styles.modifier}
+        accessibilityRole="button"
+      >
+        <Pencil size={17} color={couleurs.encre} strokeWidth={2} />
+        <Text style={styles.texteModifier}>
+          {profil.avatarUrl || profil.bio ? 'Modifier le profil' : 'Ajouter une photo et une bio'}
+        </Text>
+      </Pressable>
 
       {/* Un appui sur la barre d'expérience déplie la liste des niveaux. */}
       <Pressable
@@ -289,6 +300,18 @@ const styles = StyleSheet.create({
   gain: { fontFamily: polices.texteGras, fontSize: 15, color: couleurs.corail },
   separateur: { height: 1, marginVertical: 6, backgroundColor: couleurs.trait },
   boutonInfo: { position: 'absolute', top: 14, right: 14, padding: 4 },
+  modifier: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    minHeight: 44,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: couleurs.encre,
+    backgroundColor: couleurs.surface,
+  },
+  texteModifier: { fontFamily: polices.texteGras, fontSize: 15, color: couleurs.encre },
   // Panneau du barème, posé sur toute la carte sombre.
   bareme: {
     ...StyleSheet.absoluteFill,

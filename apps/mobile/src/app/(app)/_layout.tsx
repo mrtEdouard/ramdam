@@ -28,6 +28,7 @@ export default function LayoutApp() {
         <Stack.Screen name="fiches/nouvelle" options={{ title: 'Nouvelle fiche' }} />
         <Stack.Screen name="offres/[id]/index" options={{ title: 'Offre' }} />
         <Stack.Screen name="profil" options={{ title: 'Profil' }} />
+        <Stack.Screen name="modifier-profil" options={{ title: 'Modifier le profil' }} />
         <Stack.Screen name="profils/[pseudo]" options={{ title: 'Profil' }} />
         <Stack.Screen name="notifications" options={{ title: 'Notifications' }} />
         {/* RG-15 : seuls les Directeurs ouvrent la publication ou la modification d'une offre,

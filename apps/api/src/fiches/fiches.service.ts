@@ -22,7 +22,7 @@ import { PrismaService } from '../prisma/prisma.service.js';
 
 // Champs lus pour chaque fiche : l'auteur et le nombre de « j'aime » viennent des tables liées.
 export const AVEC_AUTEUR_ET_AIMES = {
-  utilisateur: { select: { pseudo: true } },
+  utilisateur: { select: { pseudo: true, avatar_url: true } },
   _count: { select: { aimer: true } },
 } as const;
 
@@ -317,6 +317,7 @@ export function versResume(fiche: FicheLue): FicheResume {
     statut: fiche.statut,
     publieeLe: fiche.publiee_le?.toISOString() ?? null,
     auteur: fiche.utilisateur.pseudo,
+    auteurAvatar: fiche.utilisateur.avatar_url,
     aimes: fiche._count.aimer,
     imageUrl: fiche.image_url,
   };

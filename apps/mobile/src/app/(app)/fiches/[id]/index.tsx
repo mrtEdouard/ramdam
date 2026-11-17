@@ -165,7 +165,7 @@ export default function DetailFiche() {
               accessibilityRole="link"
               accessibilityLabel={`Voir le profil de ${fiche.auteur}`}
             >
-              <Avatar pseudo={fiche.auteur} taille={32} />
+              <Avatar pseudo={fiche.auteur} url={fiche.auteurAvatar} taille={32} />
               <Text style={styles.pseudo}>{fiche.auteur}</Text>
             </Pressable>
           </Link>

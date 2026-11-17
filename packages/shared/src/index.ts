@@ -6,3 +6,4 @@ export * from './fiches.js';
 export * from './offres.js';
 export * from './notifications.js';
 export * from './commentaires.js';
+export * from './profil.js';

@@ -51,7 +51,7 @@ export function CarteUne({ fiche }: { fiche: FicheResume }) {
             )}
           </View>
           <View style={styles.auteur}>
-            <Avatar pseudo={fiche.auteur} taille={22} />
+            <Avatar pseudo={fiche.auteur} url={fiche.auteurAvatar} taille={22} />
             <Text style={styles.texteInfo} numberOfLines={1}>
               {fiche.auteur}
               {fiche.publieeLe && ` · ${depuis(new Date(fiche.publieeLe))}`}
