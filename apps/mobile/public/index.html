@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no, viewport-fit=cover"
+    />
+    <title>Ramdam</title>
+    <meta name="description" content="Le réseau des animateurs : activités, offres et entraide." />
+
+    <!-- Installable comme une app (PWA) : le manifeste demande l'affichage « standalone »,
+         sans barre d'adresse ni onglets, avec l'icône Ramdam sur l'écran d'accueil. -->
+    <link rel="manifest" href="/manifest.json" />
+    <!-- Couleur de la barre d'état du téléphone : le papier de l'app. -->
+    <meta name="theme-color" content="#F3EEE4" />
+    <!-- iPhone : Safari ne lit pas tout le manifeste, il lui faut ces balises. -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Ramdam" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <link rel="apple-touch-icon" href="/icones/apple-touch-icon.png" />
+
+    <!-- The `react-native-web` recommended style reset: https://necolas.github.io/react-native-web/docs/setup/#root-element -->
+    <style id="expo-reset">
+      /* These styles make the body full-height */
+      html,
+      body {
+        height: 100%;
+      }
+      /* These styles disable body scrolling if you are using <ScrollView> */
+      body {
+        overflow: hidden;
+        /* Fond papier pendant le chargement, au lieu d'un flash blanc. */
+        background-color: #f3eee4;
+      }
+      /* These styles make the root element full-height */
+      #root {
+        display: flex;
+        height: 100%;
+        flex: 1;
+      }
+    </style>
+  </head>
+
+  <body>
+    <noscript>Active JavaScript pour utiliser Ramdam.</noscript>
+    <div id="root"></div>
+  </body>
+</html>
