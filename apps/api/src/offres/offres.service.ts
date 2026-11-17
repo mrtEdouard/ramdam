@@ -81,7 +81,13 @@ export class OffresService {
 
   async detail(id: string, utilisateur: UtilisateurJwt): Promise<OffreDetail> {
     const offre = await this.prisma.offre.findUnique({ where: { id }, include: AVEC_DIRECTEUR });
-    if (!offre) {
+    // Une offre masquée par la modération (RG-29) n'existe plus que pour son Directeur
+    // et pour l'administrateur ; pour les autres, 404.
+    const peutVoir =
+      offre?.statut !== 'MASQUEE' ||
+      offre.directeur_id === utilisateur.sub ||
+      utilisateur.role === 'ADMIN';
+    if (!offre || !peutVoir) {
       throw new NotFoundException('Offre introuvable');
     }
     return versDetail(offre, utilisateur);
@@ -108,7 +114,11 @@ export class OffresService {
 
   // Clôturer : le poste est pourvu, l'offre disparaît de la liste mais reste consultable.
   async changerStatut(id: string, statut: StatutOffre, utilisateur: UtilisateurJwt) {
-    await this.offreDe(id, utilisateur);
+    const offre = await this.offreDe(id, utilisateur);
+    // Rouvrir une offre masquée la ferait réapparaître : seule la modération en décide.
+    if (offre.statut === 'MASQUEE') {
+      throw new ForbiddenException('Cette offre a été masquée par la modération');
+    }
     await this.prisma.offre.update({ where: { id }, data: { statut } });
     return { statut };
   }

@@ -15,6 +15,7 @@ import {
   View,
 } from 'react-native';
 import { Bouton } from '@/components/bouton';
+import { BoutonSignaler } from '@/components/bouton-signaler';
 import { MessageErreur } from '@/components/message-erreur';
 import { couleurs, polices } from '@/constants/theme';
 import { useRequete } from '@/hooks/use-requete';
@@ -53,6 +54,7 @@ export default function DetailOffre() {
   }
 
   const cloturee = offre.statut === 'CLOTUREE';
+  const masquee = offre.statut === 'MASQUEE';
   // Les candidatures se font hors de Ramdam : on ouvre l'e-mail ou le site de la structure.
   const estEmail = !offre.contactExterne.startsWith('http');
   const lienContact = estEmail ? `mailto:${offre.contactExterne}` : offre.contactExterne;
@@ -137,6 +139,11 @@ export default function DetailOffre() {
           Offre clôturée : le poste est pourvu, elle n’apparaît plus dans la liste.
         </Text>
       )}
+      {masquee && (
+        <Text style={[styles.bandeau, styles.bandeauMasquee]}>
+          Offre masquée par la modération : elle n’est plus visible par les animateurs.
+        </Text>
+      )}
       <Text style={styles.structure}>
         {libellesTypeStructure[offre.typeStructure]} · {offre.structure}
       </Text>
@@ -172,7 +179,7 @@ export default function DetailOffre() {
       </Text>
       <Text style={styles.texte}>{offre.description}</Text>
 
-      {!cloturee && !offre.estAMoi && (
+      {offre.statut === 'OUVERTE' && !offre.estAMoi && (
         <>
           <Bouton
             titre={estEmail ? 'Candidater par e-mail' : 'Candidater sur le site'}
@@ -181,6 +188,9 @@ export default function DetailOffre() {
           <Text style={styles.note}>
             La candidature se fait directement auprès de la structure.
           </Text>
+          <View style={styles.signaler}>
+            <BoutonSignaler cible="OFFRE" cibleId={offre.id} />
+          </View>
         </>
       )}
 
@@ -195,12 +205,15 @@ export default function DetailOffre() {
               router.push({ pathname: '/offres/[id]/modifier', params: { id: offre.id } })
             }
           />
-          <Bouton
-            titre={cloturee ? 'Rouvrir l’offre' : 'Clôturer : poste pourvu'}
-            variante="secondaire"
-            onPress={basculerStatut}
-            chargement={action === 'statut'}
-          />
+          {/* Une offre masquée ne se rouvre pas : seule la modération en décide. */}
+          {!masquee && (
+            <Bouton
+              titre={cloturee ? 'Rouvrir l’offre' : 'Clôturer : poste pourvu'}
+              variante="secondaire"
+              onPress={basculerStatut}
+              chargement={action === 'statut'}
+            />
+          )}
           <Bouton
             titre="Supprimer"
             variante="danger"
@@ -280,6 +293,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(30, 26, 22, 0.9)',
   },
   photoPleine: { width: '100%', height: '80%' },
+  signaler: { alignItems: 'center', marginTop: 4 },
+  bandeauMasquee: { backgroundColor: couleurs.erreurDoux, color: couleurs.erreur },
   bandeau: {
     padding: 12,
     borderRadius: 6,

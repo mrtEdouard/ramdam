@@ -155,6 +155,7 @@ model offre {
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains an expression index which requires additional setup for migrations. Visit https://pris.ly/d/expression-indexes for more info.
 model signalement {
   id                                             String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   auteur_id                                      String?            @db.Uuid
@@ -277,6 +278,7 @@ enum statut_fiche {
 enum statut_offre {
   OUVERTE
   CLOTUREE
+  MASQUEE
 }
 
 enum statut_signalement {

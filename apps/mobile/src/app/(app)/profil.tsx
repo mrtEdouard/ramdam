@@ -1,6 +1,16 @@
 import { niveauPour, niveaux, raisonXp, type MouvementXp, type Profil } from '@ramdam/shared';
 import { router, useFocusEffect } from 'expo-router';
-import { Check, ChevronDown, ChevronUp, Info, Lock, LogOut, Pencil, X } from 'lucide-react-native';
+import {
+  Check,
+  ChevronDown,
+  ChevronUp,
+  Info,
+  Lock,
+  LogOut,
+  Pencil,
+  ShieldCheck,
+  X,
+} from 'lucide-react-native';
 import { useCallback, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp, FadeOut } from 'react-native-reanimated';
@@ -222,6 +232,17 @@ export default function PageProfil() {
           ))
         )}
       </View>
+
+      {profil.role === 'ADMIN' && (
+        <Pressable
+          onPress={() => router.push('/moderation')}
+          style={styles.modifier}
+          accessibilityRole="button"
+        >
+          <ShieldCheck size={18} color={couleurs.sapin} strokeWidth={2} />
+          <Text style={styles.texteModifier}>Modération des signalements</Text>
+        </Pressable>
+      )}
 
       <Pressable onPress={deconnecter} style={styles.deconnexion} accessibilityRole="button">
         <LogOut size={20} color={couleurs.erreur} strokeWidth={2} />

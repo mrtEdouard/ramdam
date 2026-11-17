@@ -125,6 +125,24 @@ describe('clôturer et supprimer', () => {
     });
   });
 
+  it('refuse de rouvrir une offre masquée par la modération', async () => {
+    prisma.offre.findUnique.mockResolvedValue({ ...ligne, statut: 'MASQUEE' });
+    await expect(service.changerStatut('id-offre', 'OUVERTE', sophie)).rejects.toThrow(
+      ForbiddenException,
+    );
+    expect(prisma.offre.update).not.toHaveBeenCalled();
+  });
+
+  it('cache une offre masquée aux autres (404), pas à l’administrateur', async () => {
+    prisma.offre.findUnique.mockResolvedValue({ ...ligne, statut: 'MASQUEE' });
+    await expect(service.detail('id-offre', marc)).rejects.toThrow(NotFoundException);
+    await expect(
+      service.detail('id-offre', { sub: 'id-admin', role: 'ADMIN' }),
+    ).resolves.toMatchObject({
+      statut: 'MASQUEE',
+    });
+  });
+
   it('répond 404 pour une offre qui n’existe pas', async () => {
     prisma.offre.findUnique.mockResolvedValue(null);
     await expect(service.supprimer('id-offre', sophie)).rejects.toThrow(NotFoundException);

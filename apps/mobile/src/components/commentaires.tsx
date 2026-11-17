@@ -9,6 +9,7 @@ import { SendHorizontal, X } from 'lucide-react-native';
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Avatar } from '@/components/avatar';
+import { BoutonSignaler } from '@/components/bouton-signaler';
 import { MessageErreur } from '@/components/message-erreur';
 import { useToast } from '@/components/toast';
 import { couleurs, polices } from '@/constants/theme';
@@ -194,10 +195,17 @@ function Message({ message, petit = false, onRepondre, onSupprimer }: PropsMessa
           <Pressable onPress={onRepondre} hitSlop={8} accessibilityRole="button">
             <Text style={styles.action}>Répondre</Text>
           </Pressable>
-          {message.estAMoi && (
+          {message.estAMoi ? (
             <Pressable onPress={onSupprimer} hitSlop={8} accessibilityRole="button">
               <Text style={[styles.action, styles.actionDanger]}>Supprimer</Text>
             </Pressable>
+          ) : (
+            <BoutonSignaler
+              cible="COMMENTAIRE"
+              cibleId={message.id}
+              avecIcone={false}
+              styleTexte={styles.action}
+            />
           )}
         </View>
       </View>

@@ -115,9 +115,14 @@ export class FichesService {
   async detail(id: string, utilisateur: UtilisateurJwt): Promise<FicheDetail> {
     const fiche = await this.prisma.fiche.findUnique({ where: { id }, include: DETAIL });
     const estAuteur = fiche?.auteur_id === utilisateur.sub;
-    // Un brouillon ou une fiche masquée n'existe que pour son auteur : pour les autres, 404,
-    // sans révéler qu'une fiche porte cet identifiant.
-    if (!fiche || (fiche.statut !== 'PUBLIEE' && !estAuteur)) {
+    // Un brouillon n'existe que pour son auteur ; une fiche masquée par la modération,
+    // pour son auteur et l'administrateur. Pour les autres, 404, sans révéler qu'une fiche
+    // porte cet identifiant.
+    const peutVoir =
+      fiche?.statut === 'PUBLIEE' ||
+      estAuteur ||
+      (fiche?.statut === 'MASQUEE' && utilisateur.role === 'ADMIN');
+    if (!fiche || !peutVoir) {
       throw new NotFoundException('Fiche introuvable');
     }
     const cle = { utilisateur_id_fiche_id: { utilisateur_id: utilisateur.sub, fiche_id: id } };

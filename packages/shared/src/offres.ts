@@ -115,7 +115,8 @@ export const filtresOffresSchema = z.object({
 
 export type FiltresOffres = z.infer<typeof filtresOffresSchema>;
 
-export type StatutOffre = 'OUVERTE' | 'CLOTUREE';
+// MASQUEE : retirée par la modération (RG-29), visible seulement par son Directeur.
+export type StatutOffre = 'OUVERTE' | 'CLOTUREE' | 'MASQUEE';
 
 export type OffreResume = {
   id: string;

@@ -24,7 +24,8 @@ type Props = {
 export function CarteOffre({ offre, position }: Props) {
   const { jour, mois } = jourEtMois(new Date(offre.dateDebut));
   const duree = dureeOffre(offre.dateDebut, offre.dateFin);
-  const cloturee = offre.statut === 'CLOTUREE';
+  // Clôturée (poste pourvu) ou masquée par la modération : l'offre n'est plus active.
+  const cloturee = offre.statut !== 'OUVERTE';
   const bientot = cloturee ? null : departProche(offre.dateDebut);
 
   // La carte s'enfonce un peu sous le doigt, puis revient avec un léger rebond.
@@ -63,7 +64,9 @@ export function CarteOffre({ offre, position }: Props) {
               </View>
               {cloturee && (
                 <View style={styles.tampon}>
-                  <Text style={styles.texteTampon}>Poste pourvu</Text>
+                  <Text style={styles.texteTampon}>
+                    {offre.statut === 'MASQUEE' ? 'Masquée' : 'Poste pourvu'}
+                  </Text>
                 </View>
               )}
             </View>

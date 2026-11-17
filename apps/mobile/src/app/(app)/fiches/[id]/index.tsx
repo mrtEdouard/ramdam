@@ -13,6 +13,7 @@ import {
   View,
 } from 'react-native';
 import { Avatar } from '@/components/avatar';
+import { BoutonSignaler } from '@/components/bouton-signaler';
 import { Bouton } from '@/components/bouton';
 import { Commentaires } from '@/components/commentaires';
 import { MessageErreur } from '@/components/message-erreur';
@@ -307,6 +308,13 @@ export default function DetailFiche() {
           </View>
         )}
 
+        {/* Signaler la fiche d'un autre (RG-20), discrètement, avant les commentaires. */}
+        {!fiche.estAuteur && fiche.statut === 'PUBLIEE' && (
+          <View style={styles.signaler}>
+            <BoutonSignaler cible="FICHE" cibleId={fiche.id} />
+          </View>
+        )}
+
         {/* On ne commente qu'une fiche publiée (l'API le vérifie aussi). */}
         {fiche.statut === 'PUBLIEE' && <Commentaires ficheId={fiche.id} />}
       </View>
@@ -399,6 +407,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: couleurs.encre2,
   },
+  signaler: { alignItems: 'flex-end' },
   masquee: {
     paddingHorizontal: 10,
     paddingVertical: 3,

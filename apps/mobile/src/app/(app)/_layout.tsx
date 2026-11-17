@@ -9,6 +9,7 @@ import { useSession } from '@/session/session-context';
 export default function LayoutApp() {
   const { session } = useSession();
   const estDirecteur = session?.utilisateur.role === 'DIRECTEUR';
+  const estAdmin = session?.utilisateur.role === 'ADMIN';
 
   return (
     <View style={styles.app}>
@@ -37,6 +38,10 @@ export default function LayoutApp() {
           <Stack.Screen name="creer" options={{ title: 'Créer', presentation: 'modal' }} />
           <Stack.Screen name="offres/nouvelle" options={{ title: 'Nouvelle offre' }} />
           <Stack.Screen name="offres/[id]/modifier" options={{ title: 'Modifier l’offre' }} />
+        </Stack.Protected>
+        {/* RG-29 : la modération est réservée aux administrateurs (l'API vérifie aussi). */}
+        <Stack.Protected guard={estAdmin}>
+          <Stack.Screen name="moderation" options={{ title: 'Modération' }} />
         </Stack.Protected>
       </Stack>
       <BarreOnglets />

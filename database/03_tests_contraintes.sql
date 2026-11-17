@@ -227,6 +227,12 @@ SELECT pg_temp.doit_echouer('RG-27 septième photo sur une offre',
   $q$INSERT INTO photo_offre (offre_id, url)
      VALUES ('30000000-0000-0000-0000-000000000001', '/images/test-7.webp')$q$);
 
+-- RG-28 : le même contenu ne peut pas être signalé deux fois par la même personne en attente
+-- (le jeu d'essai contient déjà le signalement de karim_gj sur l'offre 2)
+SELECT pg_temp.doit_echouer('RG-28 deuxième signalement en attente du même contenu',
+  $q$INSERT INTO signalement (auteur_id, offre_id, motif)
+     VALUES ('00000000-0000-0000-0000-000000000005', '30000000-0000-0000-0000-000000000002', 'x')$q$);
+
 -- Sécurité : le rôle applicatif ne peut pas modifier l'XP lui-même
 SET LOCAL ROLE ramdam_app;
 SELECT pg_temp.doit_echouer('Sécurité : ramdam_app modifie le total d''XP',
