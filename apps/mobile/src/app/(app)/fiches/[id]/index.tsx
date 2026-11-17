@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { Avatar } from '@/components/avatar';
 import { Bouton } from '@/components/bouton';
+import { Commentaires } from '@/components/commentaires';
 import { MessageErreur } from '@/components/message-erreur';
 import { couleurs, polices } from '@/constants/theme';
 import { useToast } from '@/components/toast';
@@ -305,6 +306,9 @@ export default function DetailFiche() {
             />
           </View>
         )}
+
+        {/* On ne commente qu'une fiche publiée (l'API le vérifie aussi). */}
+        {fiche.statut === 'PUBLIEE' && <Commentaires ficheId={fiche.id} />}
       </View>
 
       {/* Photo de la galerie en plein écran ; un appui n'importe où la referme. */}

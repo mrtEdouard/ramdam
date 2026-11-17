@@ -40,6 +40,11 @@ SELECT pg_temp.doit_echouer('RG-11 réponse sur une autre fiche que son parent',
      VALUES ('10000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000004',
              '20000000-0000-0000-0000-000000000001', 'x')$q$);
 
+SELECT pg_temp.doit_echouer('RG-11 réponse à une réponse (un seul niveau)',
+  $q$INSERT INTO commentaire (fiche_id, auteur_id, parent_id, contenu)
+     VALUES ('10000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000006',
+             '20000000-0000-0000-0000-000000000002', 'x')$q$);
+
 SELECT pg_temp.doit_echouer('RG-12 aimer deux fois la même fiche',
   $q$INSERT INTO aimer (utilisateur_id, fiche_id)
      VALUES ('00000000-0000-0000-0000-000000000004', '10000000-0000-0000-0000-000000000001')$q$);
@@ -117,6 +122,48 @@ BEGIN
     RAISE EXCEPTION 'ÉCHEC RG-24 : % notifications au lieu de 1', nombre;
   END IF;
   RAISE NOTICE 'OK RG-24 une seule notification par personne et par fiche';
+END;
+$$;
+
+-- RG-25 : commenter la fiche d'un autre rapporte 5 XP une seule fois ; sa propre fiche, rien
+DO $$
+DECLARE
+  avant integer;
+  apres integer;
+  auteur_avant integer;
+  auteur_apres integer;
+BEGIN
+  SELECT xp INTO avant FROM utilisateur WHERE id = '00000000-0000-0000-0000-000000000006';
+  SELECT xp INTO auteur_avant FROM utilisateur WHERE id = '00000000-0000-0000-0000-000000000005';
+  INSERT INTO commentaire (fiche_id, auteur_id, contenu) VALUES
+    ('10000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000006', 'Premier'),
+    ('10000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000006', 'Second'),
+    ('10000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000005', 'De l''auteur');
+  SELECT xp INTO apres FROM utilisateur WHERE id = '00000000-0000-0000-0000-000000000006';
+  SELECT xp INTO auteur_apres FROM utilisateur WHERE id = '00000000-0000-0000-0000-000000000005';
+  IF apres <> avant + 5 OR auteur_apres <> auteur_avant THEN
+    RAISE EXCEPTION 'ÉCHEC RG-25 : commentateur % -> %, auteur % -> %',
+      avant, apres, auteur_avant, auteur_apres;
+  END IF;
+  RAISE NOTICE 'OK RG-25 +5 XP une seule fois par fiche, rien sur sa propre fiche';
+END;
+$$;
+
+-- RG-26 : un commentaire prévient l'auteur de la fiche, une réponse l'auteur du commentaire
+DO $$
+BEGIN
+  INSERT INTO commentaire (fiche_id, auteur_id, parent_id, contenu)
+    VALUES ('10000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000006',
+            '20000000-0000-0000-0000-000000000001', 'Bien vu');
+  IF NOT EXISTS (SELECT 1 FROM notification WHERE type = 'COMMENTAIRE'
+                   AND destinataire_id = '00000000-0000-0000-0000-000000000005'
+                   AND acteur_id = '00000000-0000-0000-0000-000000000006')
+     OR NOT EXISTS (SELECT 1 FROM notification WHERE type = 'REPONSE'
+                   AND destinataire_id = '00000000-0000-0000-0000-000000000004'
+                   AND acteur_id = '00000000-0000-0000-0000-000000000006') THEN
+    RAISE EXCEPTION 'ÉCHEC RG-26 : notification de commentaire ou de réponse absente';
+  END IF;
+  RAISE NOTICE 'OK RG-26 commentaire et réponse notifiés';
 END;
 $$;
 

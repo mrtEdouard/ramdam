@@ -14,10 +14,13 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
 import {
+  commentaireSchema,
   creerFicheSchema,
   filtresFichesSchema,
   modifierFicheSchema,
+  type CommentaireDto,
   type CreerFicheDto,
   type FiltresFiches,
   type ModifierFicheDto,
@@ -27,6 +30,7 @@ import { UtilisateurConnecte } from '../auth/utilisateur-connecte.decorator.js';
 import { IdentifiantPipe } from '../commun/identifiant.pipe.js';
 import { ZodValidationPipe } from '../commun/zod-validation.pipe.js';
 import { fichierImage, TAILLE_MAX_IMAGE } from '../images/fichier-image.pipe.js';
+import { CommentairesService } from './commentaires.service.js';
 import { FichesService } from './fiches.service.js';
 import { ReactionsService } from './reactions.service.js';
 
@@ -37,6 +41,7 @@ export class FichesController {
   constructor(
     private readonly fichesService: FichesService,
     private readonly reactionsService: ReactionsService,
+    private readonly commentairesService: CommentairesService,
   ) {}
 
   @Get()
@@ -170,5 +175,37 @@ export class FichesController {
     @UtilisateurConnecte() utilisateur: UtilisateurJwt,
   ) {
     return this.reactionsService.retirerDeLaMalle(id, utilisateur);
+  }
+
+  // ---------- Commentaires et réponses ----------
+
+  @Get(':id/commentaires')
+  commentaires(
+    @Param('id', IdentifiantPipe) id: string,
+    @UtilisateurConnecte() utilisateur: UtilisateurJwt,
+  ) {
+    return this.commentairesService.lister(id, utilisateur);
+  }
+
+  // Au plus 10 commentaires par minute et par adresse : freine le spam.
+  @UseGuards(ThrottlerGuard)
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  @Post(':id/commentaires')
+  commenter(
+    @Param('id', IdentifiantPipe) id: string,
+    @Body(new ZodValidationPipe(commentaireSchema)) dto: CommentaireDto,
+    @UtilisateurConnecte() utilisateur: UtilisateurJwt,
+  ) {
+    return this.commentairesService.envoyer(id, dto, utilisateur);
+  }
+
+  @Delete(':id/commentaires/:commentaireId')
+  @HttpCode(204)
+  supprimerCommentaire(
+    @Param('id', IdentifiantPipe) id: string,
+    @Param('commentaireId', IdentifiantPipe) commentaireId: string,
+    @UtilisateurConnecte() utilisateur: UtilisateurJwt,
+  ) {
+    return this.commentairesService.supprimer(id, commentaireId, utilisateur);
   }
 }

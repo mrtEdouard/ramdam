@@ -66,6 +66,6 @@ export function raisonXp(mouvement: MouvementXp): string {
     case 'FICHE_AIMEE_DONNEE':
       return `Tu as aimé ${fiche}`;
     case 'COMMENTAIRE_PUBLIE':
-      return 'Tu as commenté une fiche';
+      return `Tu as commenté ${fiche}`;
   }
 }

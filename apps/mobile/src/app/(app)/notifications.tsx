@@ -1,6 +1,6 @@
 import type { Notification } from '@ramdam/shared';
 import { Link, router } from 'expo-router';
-import { Backpack, Bell, Heart } from 'lucide-react-native';
+import { Backpack, Bell, Heart, MessageCircle, type LucideIcon } from 'lucide-react-native';
 import { useEffect } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Avatar } from '@/components/avatar';
@@ -53,8 +53,8 @@ export default function Notifications() {
         <View style={styles.vide}>
           <Bell size={28} color={couleurs.encre2} />
           <Text style={styles.texteVide}>
-            Rien pour l’instant. Quand quelqu’un aimera ou gardera une de tes fiches, tu le verras
-            ici.
+            Rien pour l’instant. Quand quelqu’un aimera, gardera ou commentera une de tes fiches, tu
+            le verras ici.
           </Text>
         </View>
       )}
@@ -65,10 +65,43 @@ export default function Notifications() {
   );
 }
 
+// Pour chaque type : l'icône de la pastille, sa couleur et la phrase autour du titre de la fiche.
+const types: Record<
+  Notification['type'],
+  { icone: LucideIcon; couleur: string; plein: boolean; avant: string; apres: string }
+> = {
+  FICHE_AIMEE: {
+    icone: Heart,
+    couleur: couleurs.corail,
+    plein: true,
+    avant: 'a aimé ta fiche',
+    apres: '',
+  },
+  FICHE_EN_MALLE: {
+    icone: Backpack,
+    couleur: couleurs.encre,
+    plein: false,
+    avant: 'a gardé ta fiche',
+    apres: ' dans sa Malle',
+  },
+  COMMENTAIRE: {
+    icone: MessageCircle,
+    couleur: couleurs.sapin,
+    plein: false,
+    avant: 'a commenté ta fiche',
+    apres: '',
+  },
+  REPONSE: {
+    icone: MessageCircle,
+    couleur: couleurs.sapin,
+    plein: false,
+    avant: 'a répondu à ton commentaire sur',
+    apres: '',
+  },
+};
+
 function LigneNotification({ notification }: { notification: Notification }) {
-  const aime = notification.type === 'FICHE_AIMEE';
-  const Icone = aime ? Heart : Backpack;
-  const action = aime ? 'a aimé ta fiche' : 'a gardé ta fiche';
+  const { icone: Icone, couleur, plein, avant, apres } = types[notification.type];
   const profil = {
     pathname: '/profils/[pseudo]',
     params: { pseudo: notification.acteur },
@@ -81,13 +114,11 @@ function LigneNotification({ notification }: { notification: Notification }) {
       <Link href={profil} asChild>
         <Pressable accessibilityRole="link" accessibilityLabel={`Profil de ${notification.acteur}`}>
           <Avatar pseudo={notification.acteur} taille={44} />
-          <View
-            style={[styles.pastille, { backgroundColor: aime ? couleurs.corail : couleurs.encre }]}
-          >
+          <View style={[styles.pastille, { backgroundColor: couleur }]}>
             <Icone
               size={11}
               color={couleurs.surface}
-              fill={aime ? couleurs.surface : 'none'}
+              fill={plein ? couleurs.surface : 'none'}
               strokeWidth={2.5}
             />
           </View>
@@ -102,11 +133,11 @@ function LigneNotification({ notification }: { notification: Notification }) {
             router.push({ pathname: '/fiches/[id]', params: { id: notification.fiche.id } })
           }
           accessibilityRole="button"
-          accessibilityLabel={`${action} ${notification.fiche.titre}${aime ? '' : ' dans sa Malle'}${notification.lue ? '' : ', nouvelle'}`}
+          accessibilityLabel={`${avant} ${notification.fiche.titre}${apres}${notification.lue ? '' : ', nouvelle'}`}
         >
           <Text style={styles.phrase}>
-            {action} <Text style={styles.titreFiche}>« {notification.fiche.titre} »</Text>
-            {aime ? '' : ' dans sa Malle'}
+            {avant} <Text style={styles.titreFiche}>« {notification.fiche.titre} »</Text>
+            {apres}
           </Text>
           <Text style={styles.date}>{depuis(new Date(notification.creeLe))}</Text>
         </Pressable>

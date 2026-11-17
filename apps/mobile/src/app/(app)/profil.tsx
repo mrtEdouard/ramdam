@@ -16,7 +16,7 @@ import { useSession } from '@/session/session-context';
 const gainsXp = [
   { action: 'Publier une fiche', points: 50 },
   { action: 'Ta fiche est ajoutée à une Malle', points: 10 },
-  { action: 'Commenter une fiche', points: 5 },
+  { action: 'Commenter la fiche d’un autre (1 fois par fiche)', points: 5 },
   { action: 'Ta fiche reçoit un « j’aime »', points: 2 },
   { action: 'Aimer la fiche d’un autre (10 fois par jour)', points: 1 },
 ];
