@@ -36,3 +36,20 @@ jobs:
       # Compile les schémas Zod partagés et génère le client Prisma (fichiers non versionnés)
       - run: pnpm generate
       - run: pnpm --filter @ramdam/mobile typecheck
+
+  # Déploiement continu : après une fusion dans main, une fois l'API et l'app vérifiées,
+  # GitHub se connecte au VPS avec une clé qui ne peut lancer que la mise à jour de Ramdam.
+  deploiement:
+    needs: [api, mobile]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Mettre à jour Ramdam sur le VPS
+        env:
+          CLE_SSH: ${{ secrets.VPS_CLE_SSH }}
+          HOTE: ${{ secrets.VPS_HOTE }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$CLE_SSH" > ~/.ssh/deploiement && chmod 600 ~/.ssh/deploiement
+          ssh-keyscan -H "$HOTE" >> ~/.ssh/known_hosts
+          ssh -i ~/.ssh/deploiement root@"$HOTE"

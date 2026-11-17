@@ -17,7 +17,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 10,
     padding: 14,
-    borderRadius: 14,
+    borderRadius: 8,
     backgroundColor: couleurs.erreurDoux,
   },
   texte: {

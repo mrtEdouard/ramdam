@@ -13,7 +13,7 @@ export function PageAVenir({ icone: Icone, titre, description }: Props) {
   return (
     <View style={styles.page}>
       <View style={styles.pastille}>
-        <Icone size={28} color={couleurs.corail} strokeWidth={1.75} />
+        <Icone size={36} color={couleurs.encre} strokeWidth={1.75} />
       </View>
       <Text style={styles.titre} accessibilityRole="header">
         {titre}
@@ -32,15 +32,7 @@ const styles = StyleSheet.create({
     padding: 32,
     backgroundColor: couleurs.fond,
   },
-  pastille: {
-    width: 64,
-    height: 64,
-    marginBottom: 6,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: couleurs.corailDoux,
-  },
+  pastille: { marginBottom: 6, alignItems: 'center' },
   titre: {
     fontFamily: polices.titre,
     fontSize: 24,

@@ -1,39 +1,30 @@
-import { niveauPour, niveaux, type Profil } from '@ramdam/shared';
+import { niveauPour, niveaux, raisonXp, type MouvementXp, type Profil } from '@ramdam/shared';
 import { useFocusEffect } from 'expo-router';
-import {
-  BadgeCheck,
-  Check,
-  ChevronDown,
-  ChevronUp,
-  Info,
-  Lock,
-  LogOut,
-  X,
-} from 'lucide-react-native';
+import { Check, ChevronDown, ChevronUp, Info, Lock, LogOut, X } from 'lucide-react-native';
 import { useCallback, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp, FadeOut } from 'react-native-reanimated';
+import { CarteProfil, CompteursProfil } from '@/components/carte-profil';
 import { Embleme } from '@/components/embleme';
 import { MessageErreur } from '@/components/message-erreur';
 import { couleurs, polices } from '@/constants/theme';
 import { ErreurApi, lire } from '@/lib/api';
-import { compteur, moisEtAnnee } from '@/lib/format';
+import { depuis } from '@/lib/format';
 import { useSession } from '@/session/session-context';
-
-// Le vert du badge Directeur, éclairci pour rester lisible sur la carte sombre.
-const VERT_SUR_NUIT = '#4FD1A5';
 
 // Les gains d'XP fixés par les triggers de la base (database/01_schema.sql).
 const gainsXp = [
   { action: 'Publier une fiche', points: 50 },
   { action: 'Ta fiche est ajoutée à une Malle', points: 10 },
-  { action: 'Commenter une fiche', points: 5 },
+  { action: 'Commenter la fiche d’un autre (1 fois par fiche)', points: 5 },
   { action: 'Ta fiche reçoit un « j’aime »', points: 2 },
+  { action: 'Aimer la fiche d’un autre (10 fois par jour)', points: 1 },
 ];
 
 export default function PageProfil() {
   const { session, deconnecter } = useSession();
   const [profil, setProfil] = useState<Profil | null>(null);
+  const [historique, setHistorique] = useState<MouvementXp[]>([]);
   const [erreur, setErreur] = useState<string | null>(null);
   const [baremeVisible, setBaremeVisible] = useState(false);
   const [niveauxVisibles, setNiveauxVisibles] = useState(false);
@@ -57,6 +48,10 @@ export default function PageProfil() {
           }
           setErreur(e instanceof ErreurApi ? e.message : 'Impossible de charger le profil.');
         });
+      // L'historique est privé : la route ne renvoie que celui du compte connecté.
+      lire<MouvementXp[]>('/profils/moi/historique-xp', session.jeton)
+        .then(setHistorique)
+        .catch(() => setHistorique([]));
     }, [session, deconnecter]),
   );
 
@@ -79,30 +74,7 @@ export default function PageProfil() {
 
   return (
     <ScrollView contentContainerStyle={styles.page} showsVerticalScrollIndicator={false}>
-      <View style={styles.identite}>
-        <View accessibilityLabel={`Emblème niveau ${actuel.numero}, ${actuel.nom}`} accessible>
-          <Embleme niveau={actuel.numero} taille={220} />
-        </View>
-        <Text style={styles.rang}>
-          Niveau {actuel.numero} · {actuel.nom}
-        </Text>
-        <Text style={styles.pseudo} accessibilityRole="header">
-          {profil.pseudo}
-        </Text>
-        <View style={styles.ligneRole}>
-          {profil.role === 'DIRECTEUR' ? (
-            <View style={styles.role}>
-              <BadgeCheck size={15} color={VERT_SUR_NUIT} strokeWidth={2} />
-              <Text style={[styles.texteRole, { color: VERT_SUR_NUIT }]}>Directeur</Text>
-            </View>
-          ) : (
-            <Text style={styles.texteRole}>Animateur</Text>
-          )}
-          <Text style={styles.depuis}>
-            · membre depuis {moisEtAnnee(new Date(profil.membreDepuis))}
-          </Text>
-        </View>
-
+      <CarteProfil profil={profil}>
         <Pressable
           onPress={() => setBaremeVisible(true)}
           style={styles.boutonInfo}
@@ -110,7 +82,7 @@ export default function PageProfil() {
           accessibilityRole="button"
           accessibilityLabel="Comment gagner de l’XP"
         >
-          <Info size={20} color="#B9B6C8" strokeWidth={2} />
+          <Info size={20} color="#B8AFA3" strokeWidth={2} />
         </Pressable>
 
         {/* Le barème s'ouvre par-dessus la carte, sans quitter le profil. */}
@@ -141,19 +113,9 @@ export default function PageProfil() {
             ))}
           </Animated.View>
         )}
-      </View>
+      </CarteProfil>
 
-      {/* Compteurs publics, comme les abonnés d'un réseau social. */}
-      <View style={styles.compteurs}>
-        <Compteur
-          valeur={profil.fichesPubliees}
-          libelle={profil.fichesPubliees > 1 ? 'activités publiées' : 'activité publiée'}
-        />
-        <View style={styles.separateurVertical} />
-        <Compteur valeur={profil.aimesRecus} libelle="« j’aime » reçus" />
-        <View style={styles.separateurVertical} />
-        <Compteur valeur={profil.xp} libelle="XP" />
-      </View>
+      <CompteursProfil profil={profil} />
 
       {/* Un appui sur la barre d'expérience déplie la liste des niveaux. */}
       <Pressable
@@ -228,20 +190,33 @@ export default function PageProfil() {
         )}
       </Pressable>
 
+      <View style={styles.carte}>
+        <Text style={styles.titreHistorique} accessibilityRole="header">
+          Derniers gains d’XP
+        </Text>
+        {historique.length === 0 ? (
+          <Text style={styles.seuil}>Pas encore d’XP gagnée : publie ou aime une fiche !</Text>
+        ) : (
+          historique.map((mouvement, position) => (
+            <View key={mouvement.id}>
+              {position > 0 && <View style={styles.separateur} />}
+              <View style={styles.ligneHistorique}>
+                <View style={styles.textesNiveau}>
+                  <Text style={styles.raison}>{raisonXp(mouvement)}</Text>
+                  <Text style={styles.seuil}>{depuis(new Date(mouvement.gagneLe))}</Text>
+                </View>
+                <Text style={styles.gain}>+{mouvement.points} XP</Text>
+              </View>
+            </View>
+          ))
+        )}
+      </View>
+
       <Pressable onPress={deconnecter} style={styles.deconnexion} accessibilityRole="button">
         <LogOut size={20} color={couleurs.erreur} strokeWidth={2} />
         <Text style={styles.texteDeconnexion}>Se déconnecter</Text>
       </Pressable>
     </ScrollView>
-  );
-}
-
-function Compteur({ valeur, libelle }: { valeur: number; libelle: string }) {
-  return (
-    <View style={styles.compteur} accessible accessibilityLabel={`${valeur} ${libelle}`}>
-      <Text style={styles.valeur}>{compteur(valeur)}</Text>
-      <Text style={styles.libelle}>{libelle}</Text>
-    </View>
   );
 }
 
@@ -262,53 +237,8 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   // Carte « nuit » en tête du profil : les insignes de rang brillent sur un fond sombre.
-  identite: {
-    alignItems: 'center',
-    gap: 4,
-    paddingTop: 12,
-    paddingBottom: 24,
-    paddingHorizontal: 16,
-    borderRadius: 28,
-    backgroundColor: couleurs.encre,
-  },
-  rang: {
-    fontFamily: polices.texteGras,
-    fontSize: 13,
-    letterSpacing: 1.2,
-    textTransform: 'uppercase',
-    color: '#F5C24C',
-  },
-  pseudo: {
-    marginTop: 4,
-    fontFamily: polices.titre,
-    fontSize: 30,
-    letterSpacing: -0.8,
-    color: couleurs.surface,
-  },
-  ligneRole: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  role: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  texteRole: { fontFamily: polices.texteGras, fontSize: 15, color: couleurs.surface },
-  depuis: { fontFamily: polices.texte, fontSize: 15, color: '#B9B6C8' },
-  compteurs: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 16,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: couleurs.trait,
-    backgroundColor: couleurs.surface,
-  },
-  compteur: { flex: 1, alignItems: 'center', gap: 2, paddingHorizontal: 4 },
-  valeur: { fontFamily: polices.titre, fontSize: 26, letterSpacing: -0.6, color: couleurs.encre },
-  libelle: { fontFamily: polices.texte, fontSize: 13, color: couleurs.encre2, textAlign: 'center' },
-  separateurVertical: { width: 1, alignSelf: 'stretch', backgroundColor: couleurs.trait },
-  carte: {
-    padding: 16,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: couleurs.trait,
-    backgroundColor: couleurs.surface,
-  },
+  // Sections à plat, sans boîte : le titre et les traits suffisent à les séparer.
+  carte: { paddingVertical: 4 },
   enteteNiveau: { flexDirection: 'row', alignItems: 'baseline', gap: 8, marginBottom: 12 },
   chevron: { marginLeft: 'auto', alignSelf: 'center' },
   listeNiveaux: {
@@ -340,13 +270,23 @@ const styles = StyleSheet.create({
   toi: {
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 999,
+    borderRadius: 6,
     overflow: 'hidden',
     backgroundColor: couleurs.corail,
     fontFamily: polices.texteGras,
     fontSize: 13,
     color: couleurs.surface,
   },
+  titreHistorique: {
+    marginBottom: 8,
+    fontFamily: polices.titre,
+    fontSize: 18,
+    letterSpacing: -0.3,
+    color: couleurs.encre,
+  },
+  ligneHistorique: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 6 },
+  raison: { fontFamily: polices.texte, fontSize: 15, color: couleurs.encre },
+  gain: { fontFamily: polices.texteGras, fontSize: 15, color: couleurs.corail },
   separateur: { height: 1, marginVertical: 6, backgroundColor: couleurs.trait },
   boutonInfo: { position: 'absolute', top: 14, right: 14, padding: 4 },
   // Panneau du barème, posé sur toute la carte sombre.
@@ -355,7 +295,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 6,
     padding: 24,
-    borderRadius: 28,
+    borderRadius: 14,
     backgroundColor: 'rgba(16, 14, 25, 0.97)',
   },
   enteteBareme: {
@@ -387,7 +327,7 @@ const styles = StyleSheet.create({
     gap: 10,
     minHeight: 52,
     marginTop: 12,
-    borderRadius: 16,
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: couleurs.trait,
     backgroundColor: couleurs.surface,

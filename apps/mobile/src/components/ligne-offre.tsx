@@ -1,19 +1,21 @@
+import type { OffreResume } from '@ramdam/shared';
 import { Link } from 'expo-router';
 import { ChevronRight } from 'lucide-react-native';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { couleurs, polices } from '@/constants/theme';
-import type { OffreResume } from '@/donnees/demo';
+
 import { jourEtMois, periode } from '@/lib/format';
 
 // Une offre dans la liste de l'accueil, présentée comme un agenda : la date de début en premier.
 export function LigneOffre({ offre }: { offre: OffreResume }) {
-  const { jour, mois } = jourEtMois(offre.dateDebut);
+  const debut = new Date(offre.dateDebut);
+  const { jour, mois } = jourEtMois(debut);
 
   return (
     <Link href={{ pathname: '/offres/[id]', params: { id: offre.id } }} asChild>
       <Pressable
         style={styles.ligne}
-        accessibilityLabel={`${offre.intitule}, ${offre.structure}, ${offre.region}, ${periode(offre.dateDebut, offre.dateFin)}`}
+        accessibilityLabel={`${offre.intitule}, ${offre.structure}, ${offre.region}, ${periode(debut, new Date(offre.dateFin))}`}
       >
         <View style={styles.date}>
           <Text style={styles.jour}>{jour}</Text>
@@ -38,10 +40,12 @@ const styles = StyleSheet.create({
   date: {
     width: 54,
     height: 58,
-    borderRadius: 14,
+    borderRadius: 4,
+    borderWidth: 1.5,
+    borderColor: couleurs.encre,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: couleurs.corailDoux,
+    backgroundColor: couleurs.surface,
   },
   jour: { fontFamily: polices.titre, fontSize: 22, lineHeight: 24, color: couleurs.encre },
   mois: { fontFamily: polices.texteGras, fontSize: 12, color: couleurs.encre2 },

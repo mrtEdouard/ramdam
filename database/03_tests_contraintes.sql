@@ -40,6 +40,11 @@ SELECT pg_temp.doit_echouer('RG-11 réponse sur une autre fiche que son parent',
      VALUES ('10000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000004',
              '20000000-0000-0000-0000-000000000001', 'x')$q$);
 
+SELECT pg_temp.doit_echouer('RG-11 réponse à une réponse (un seul niveau)',
+  $q$INSERT INTO commentaire (fiche_id, auteur_id, parent_id, contenu)
+     VALUES ('10000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000006',
+             '20000000-0000-0000-0000-000000000002', 'x')$q$);
+
 SELECT pg_temp.doit_echouer('RG-12 aimer deux fois la même fiche',
   $q$INSERT INTO aimer (utilisateur_id, fiche_id)
      VALUES ('00000000-0000-0000-0000-000000000004', '10000000-0000-0000-0000-000000000001')$q$);
@@ -64,6 +69,110 @@ SELECT pg_temp.doit_echouer('RG-20 signalement visant deux cibles',
   $q$INSERT INTO signalement (auteur_id, fiche_id, offre_id, motif)
      VALUES ('00000000-0000-0000-0000-000000000004', '10000000-0000-0000-0000-000000000001',
              '30000000-0000-0000-0000-000000000001', 'x')$q$);
+
+SELECT pg_temp.doit_echouer('RG-21 fiche de type AUTRE sans nom de type',
+  $q$INSERT INTO fiche (auteur_id, titre, type, age_min, age_max, duree_minutes, deroulement)
+     VALUES ('00000000-0000-0000-0000-000000000004', 'x', 'AUTRE', 6, 10, 30, 'x')$q$);
+
+SELECT pg_temp.doit_echouer('RG-21 nom de type sur une fiche qui n''est pas AUTRE',
+  $q$INSERT INTO fiche (auteur_id, titre, type, type_personnalise, age_min, age_max, duree_minutes, deroulement)
+     VALUES ('00000000-0000-0000-0000-000000000004', 'x', 'JEU', 'Théâtre', 6, 10, 30, 'x')$q$);
+
+SELECT pg_temp.doit_echouer('Plus de 30 mots de matériel',
+  $q$INSERT INTO fiche (auteur_id, titre, type, age_min, age_max, duree_minutes, deroulement, materiel)
+     VALUES ('00000000-0000-0000-0000-000000000004', 'x', 'JEU', 6, 10, 30, 'x',
+             array_fill('plot'::text, ARRAY[31]))$q$);
+
+-- RG-23 : aimer la fiche d'un autre rapporte +1 XP, une seule fois par fiche
+DO $$
+DECLARE
+  avant integer;
+  apres integer;
+BEGIN
+  SELECT xp INTO avant FROM utilisateur WHERE id = '00000000-0000-0000-0000-000000000007';
+  INSERT INTO aimer (utilisateur_id, fiche_id)
+    VALUES ('00000000-0000-0000-0000-000000000007', '10000000-0000-0000-0000-000000000005');
+  DELETE FROM aimer WHERE utilisateur_id = '00000000-0000-0000-0000-000000000007'
+    AND fiche_id = '10000000-0000-0000-0000-000000000005';
+  INSERT INTO aimer (utilisateur_id, fiche_id)
+    VALUES ('00000000-0000-0000-0000-000000000007', '10000000-0000-0000-0000-000000000005');
+  SELECT xp INTO apres FROM utilisateur WHERE id = '00000000-0000-0000-0000-000000000007';
+  IF apres - avant <> 1 THEN
+    RAISE EXCEPTION 'ÉCHEC RG-23 : % XP gagnés au lieu de 1', apres - avant;
+  END IF;
+  RAISE NOTICE 'OK RG-23 aimer rapporte 1 XP, une seule fois par fiche';
+END;
+$$;
+
+-- RG-24 : aimer prévient l'auteur une seule fois, même après avoir retiré puis remis son « j'aime »
+DO $$
+DECLARE
+  nombre integer;
+BEGIN
+  INSERT INTO aimer (utilisateur_id, fiche_id)
+    VALUES ('00000000-0000-0000-0000-000000000006', '10000000-0000-0000-0000-000000000003');
+  DELETE FROM aimer WHERE utilisateur_id = '00000000-0000-0000-0000-000000000006'
+    AND fiche_id = '10000000-0000-0000-0000-000000000003';
+  INSERT INTO aimer (utilisateur_id, fiche_id)
+    VALUES ('00000000-0000-0000-0000-000000000006', '10000000-0000-0000-0000-000000000003');
+  SELECT count(*) INTO nombre FROM notification
+    WHERE acteur_id = '00000000-0000-0000-0000-000000000006'
+      AND fiche_id = '10000000-0000-0000-0000-000000000003';
+  IF nombre <> 1 THEN
+    RAISE EXCEPTION 'ÉCHEC RG-24 : % notifications au lieu de 1', nombre;
+  END IF;
+  RAISE NOTICE 'OK RG-24 une seule notification par personne et par fiche';
+END;
+$$;
+
+-- RG-25 : commenter la fiche d'un autre rapporte 5 XP une seule fois ; sa propre fiche, rien
+DO $$
+DECLARE
+  avant integer;
+  apres integer;
+  auteur_avant integer;
+  auteur_apres integer;
+BEGIN
+  SELECT xp INTO avant FROM utilisateur WHERE id = '00000000-0000-0000-0000-000000000006';
+  SELECT xp INTO auteur_avant FROM utilisateur WHERE id = '00000000-0000-0000-0000-000000000005';
+  INSERT INTO commentaire (fiche_id, auteur_id, contenu) VALUES
+    ('10000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000006', 'Premier'),
+    ('10000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000006', 'Second'),
+    ('10000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000005', 'De l''auteur');
+  SELECT xp INTO apres FROM utilisateur WHERE id = '00000000-0000-0000-0000-000000000006';
+  SELECT xp INTO auteur_apres FROM utilisateur WHERE id = '00000000-0000-0000-0000-000000000005';
+  IF apres <> avant + 5 OR auteur_apres <> auteur_avant THEN
+    RAISE EXCEPTION 'ÉCHEC RG-25 : commentateur % -> %, auteur % -> %',
+      avant, apres, auteur_avant, auteur_apres;
+  END IF;
+  RAISE NOTICE 'OK RG-25 +5 XP une seule fois par fiche, rien sur sa propre fiche';
+END;
+$$;
+
+-- RG-26 : un commentaire prévient l'auteur de la fiche, une réponse l'auteur du commentaire
+DO $$
+BEGIN
+  INSERT INTO commentaire (fiche_id, auteur_id, parent_id, contenu)
+    VALUES ('10000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000006',
+            '20000000-0000-0000-0000-000000000001', 'Bien vu');
+  IF NOT EXISTS (SELECT 1 FROM notification WHERE type = 'COMMENTAIRE'
+                   AND destinataire_id = '00000000-0000-0000-0000-000000000005'
+                   AND acteur_id = '00000000-0000-0000-0000-000000000006')
+     OR NOT EXISTS (SELECT 1 FROM notification WHERE type = 'REPONSE'
+                   AND destinataire_id = '00000000-0000-0000-0000-000000000004'
+                   AND acteur_id = '00000000-0000-0000-0000-000000000006') THEN
+    RAISE EXCEPTION 'ÉCHEC RG-26 : notification de commentaire ou de réponse absente';
+  END IF;
+  RAISE NOTICE 'OK RG-26 commentaire et réponse notifiés';
+END;
+$$;
+
+SELECT pg_temp.doit_echouer('RG-24 l''API ne crée pas de notification elle-même',
+  $q$SET LOCAL ROLE ramdam_app;
+     INSERT INTO notification (destinataire_id, acteur_id, type, fiche_id)
+     VALUES ('00000000-0000-0000-0000-000000000004', '00000000-0000-0000-0000-000000000005',
+             'FICHE_AIMEE', '10000000-0000-0000-0000-000000000003')$q$);
+RESET ROLE;
 
 -- RG-17 et RG-18 : XP attribuée une seule fois, même après un like retiré puis remis
 DO $$

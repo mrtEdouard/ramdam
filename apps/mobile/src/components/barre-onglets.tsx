@@ -1,5 +1,4 @@
-import { router } from 'expo-router';
-import type { BottomTabBarProps } from 'expo-router/tabs';
+import { router, usePathname, type Href } from 'expo-router';
 import {
   Backpack,
   BriefcaseBusiness,
@@ -9,39 +8,43 @@ import {
   type LucideIcon,
 } from 'lucide-react-native';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { couleurs, polices } from '@/constants/theme';
 import { useSession } from '@/session/session-context';
 
-const onglets: Record<string, { libelle: string; icone: LucideIcon }> = {
-  index: { libelle: 'Accueil', icone: House },
-  activites: { libelle: 'Activités', icone: Compass },
-  offres: { libelle: 'Offres', icone: BriefcaseBusiness },
-  malle: { libelle: 'Malle', icone: Backpack },
-};
+const onglets: { chemin: Href & string; libelle: string; icone: LucideIcon }[] = [
+  { chemin: '/', libelle: 'Accueil', icone: House },
+  { chemin: '/activites', libelle: 'Activités', icone: Compass },
+  { chemin: '/offres', libelle: 'Offres', icone: BriefcaseBusiness },
+  { chemin: '/malle', libelle: 'Malle', icone: Backpack },
+];
 
 // Barre de navigation du bas : quatre onglets et, au centre, le bouton de création.
-export function BarreOnglets({ state, navigateToTab, insets }: BottomTabBarProps) {
+// Elle est posée sous toutes les pages de l'app (voir app/(app)/_layout.tsx), pas seulement
+// sous les onglets : on la garde aussi sur le détail d'une fiche, le profil, etc.
+export function BarreOnglets() {
   const { session } = useSession();
+  const chemin = usePathname();
+  const insets = useSafeAreaInsets();
 
   function creer() {
     // Un Directeur choisit entre fiche et offre ; un Animateur ne peut créer que des fiches.
     router.push(session?.utilisateur.role === 'DIRECTEUR' ? '/creer' : '/fiches/nouvelle');
   }
 
-  const boutons = state.routes.map((route, position) => {
-    const onglet = onglets[route.name];
-    if (!onglet) {
-      return null;
-    }
-    const actif = state.index === position;
+  const boutons = onglets.map((onglet) => {
+    // L'onglet Offres reste allumé sur le détail d'une offre (/offres/…).
+    const actif =
+      chemin === onglet.chemin || (onglet.chemin !== '/' && chemin.startsWith(`${onglet.chemin}/`));
     const Icone = onglet.icone;
     return (
       <Pressable
-        key={route.key}
-        onPress={() => navigateToTab(route.key)}
+        key={onglet.chemin}
+        // navigate : revient à l'onglet en refermant les pages ouvertes par-dessus.
+        onPress={() => router.navigate(onglet.chemin)}
         style={styles.onglet}
         accessibilityRole="tab"
-        accessibilityState={{ selected: actif }}
+        aria-selected={actif}
         accessibilityLabel={onglet.libelle}
       >
         <Icone
@@ -81,21 +84,14 @@ const styles = StyleSheet.create({
     borderTopColor: couleurs.trait,
     backgroundColor: couleurs.surface,
   },
-  // Sur grand écran, les onglets restent groupés au centre au lieu de s'étaler.
-  contenu: {
-    width: '100%',
-    maxWidth: 560,
-    alignSelf: 'center',
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
+  contenu: { flexDirection: 'row', alignItems: 'center' },
   onglet: { flex: 1, minHeight: 48, alignItems: 'center', justifyContent: 'center', gap: 3 },
   libelle: { fontFamily: polices.texteMoyen, fontSize: 12, color: couleurs.encre2 },
   libelleActif: { fontFamily: polices.texteGras, color: couleurs.encre },
   boutonCreer: {
     width: 52,
     height: 52,
-    borderRadius: 18,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: couleurs.corail,

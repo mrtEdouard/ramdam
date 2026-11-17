@@ -1,4 +1,4 @@
-import { niveauPour } from '@ramdam/shared';
+import { niveauPour, raisonXp } from '@ramdam/shared';
 
 // Les règles de niveaux sont dans packages/shared ; elles sont testées ici, avec le reste de l'API.
 describe('niveauPour', () => {
@@ -28,5 +28,27 @@ describe('niveauPour', () => {
     expect(actuel.nom).toBe('Brasier légendaire');
     expect(suivant).toBeNull();
     expect(progression).toBe(1);
+  });
+});
+
+describe('raisonXp', () => {
+  const base = { id: '1', points: 2, gagneLe: '', fiche: { id: 'f', titre: 'Béret express' } };
+
+  it('dit qui a fait gagner de l’XP et sur quelle fiche', () => {
+    expect(raisonXp({ ...base, action: 'FICHE_AIMEE', par: 'karim' })).toBe(
+      'karim a aimé « Béret express »',
+    );
+    expect(raisonXp({ ...base, action: 'FICHE_EN_MALLE', par: 'karim' })).toBe(
+      'karim a gardé « Béret express » dans sa Malle',
+    );
+  });
+
+  it('parle à la personne quand elle a agi elle-même', () => {
+    expect(raisonXp({ ...base, action: 'FICHE_AIMEE_DONNEE', par: null })).toBe(
+      'Tu as aimé « Béret express »',
+    );
+    expect(raisonXp({ ...base, action: 'FICHE_PUBLIEE', par: null, fiche: null })).toBe(
+      'Tu as publié une fiche',
+    );
   });
 });

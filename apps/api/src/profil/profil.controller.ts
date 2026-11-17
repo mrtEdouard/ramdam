@@ -15,6 +15,13 @@ export class ProfilController {
     return this.profilService.trouver({ id: utilisateur.sub });
   }
 
+  // Historique privé : l'identifiant vient du jeton, jamais de l'adresse,
+  // donc personne ne peut consulter l'historique d'un autre compte.
+  @Get('moi/historique-xp')
+  monHistoriqueXp(@UtilisateurConnecte() utilisateur: UtilisateurJwt) {
+    return this.profilService.historiqueXp(utilisateur.sub);
+  }
+
   @Get(':pseudo')
   profilDe(@Param('pseudo') pseudo: string) {
     return this.profilService.trouver({ pseudo });

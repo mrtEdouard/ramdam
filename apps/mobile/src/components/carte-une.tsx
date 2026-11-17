@@ -1,10 +1,11 @@
+import { libelleType, type FicheResume } from '@ramdam/shared';
 import { Image } from 'expo-image';
 import { Link } from 'expo-router';
 import { Clock, Heart, Smile } from 'lucide-react-native';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Avatar } from '@/components/avatar';
 import { couleurs, polices } from '@/constants/theme';
-import { libellesTypeFiche, type FicheResume } from '@/donnees/demo';
+import { imageDeFiche } from '@/lib/images';
 import { depuis, duree } from '@/lib/format';
 
 // Grande carte « À la une » : la photo en pleine largeur, les informations dans un encart blanc.
@@ -13,11 +14,16 @@ export function CarteUne({ fiche }: { fiche: FicheResume }) {
     <Link href={{ pathname: '/fiches/[id]', params: { id: fiche.id } }} asChild>
       <Pressable
         style={styles.carte}
-        accessibilityLabel={`À la une : ${fiche.titre}, ${libellesTypeFiche[fiche.type]}, par ${fiche.auteur}, ${fiche.aimeeCetteSemaine} j'aime cette semaine`}
+        accessibilityLabel={`À la une : ${fiche.titre}, ${libelleType(fiche)}, par ${fiche.auteur}, ${fiche.aimes} j'aime`}
       >
-        <Image source={fiche.image} style={styles.image} contentFit="cover" transition={150} />
+        <Image
+          source={imageDeFiche(fiche)}
+          style={styles.image}
+          contentFit="cover"
+          transition={150}
+        />
         <View style={styles.encart}>
-          <Text style={styles.type}>{libellesTypeFiche[fiche.type]}</Text>
+          <Text style={styles.type}>{libelleType(fiche)}</Text>
           <Text style={styles.titre} numberOfLines={2}>
             {fiche.titre}
           </Text>
@@ -32,7 +38,7 @@ export function CarteUne({ fiche }: { fiche: FicheResume }) {
               <Clock size={15} color={couleurs.encre2} strokeWidth={1.75} />
               <Text style={styles.texteInfo}>{duree(fiche.dureeMinutes)}</Text>
             </View>
-            {fiche.aimeeCetteSemaine > 0 && (
+            {fiche.aimes > 0 && (
               <View style={styles.info}>
                 <Heart
                   size={15}
@@ -40,14 +46,15 @@ export function CarteUne({ fiche }: { fiche: FicheResume }) {
                   fill={couleurs.corail}
                   strokeWidth={1.75}
                 />
-                <Text style={styles.texteInfo}>{fiche.aimeeCetteSemaine}</Text>
+                <Text style={styles.texteInfo}>{fiche.aimes}</Text>
               </View>
             )}
           </View>
           <View style={styles.auteur}>
             <Avatar pseudo={fiche.auteur} taille={22} />
             <Text style={styles.texteInfo} numberOfLines={1}>
-              {fiche.auteur} · {depuis(fiche.publieeLe)}
+              {fiche.auteur}
+              {fiche.publieeLe && ` · ${depuis(new Date(fiche.publieeLe))}`}
             </Text>
           </View>
         </View>
@@ -57,21 +64,19 @@ export function CarteUne({ fiche }: { fiche: FicheResume }) {
 }
 
 const styles = StyleSheet.create({
-  carte: { height: 300, borderRadius: 24, overflow: 'hidden', justifyContent: 'flex-end' },
+  carte: { height: 300, borderRadius: 14, overflow: 'hidden', justifyContent: 'flex-end' },
   image: { ...StyleSheet.absoluteFill, backgroundColor: couleurs.trait },
   encart: {
     margin: 10,
     padding: 16,
     gap: 4,
-    borderRadius: 18,
+    borderRadius: 10,
     backgroundColor: couleurs.surface,
   },
   type: {
     fontFamily: polices.texteGras,
     fontSize: 12,
-    letterSpacing: 0.8,
-    textTransform: 'uppercase',
-    color: couleurs.corail,
+    color: couleurs.sapin,
   },
   titre: {
     fontFamily: polices.titre,

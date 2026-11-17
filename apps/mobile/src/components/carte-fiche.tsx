@@ -1,9 +1,10 @@
+import { libelleType, type FicheResume } from '@ramdam/shared';
 import { Image } from 'expo-image';
 import { Link } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Avatar } from '@/components/avatar';
 import { couleurs, polices } from '@/constants/theme';
-import { libellesTypeFiche, type FicheResume } from '@/donnees/demo';
+import { imageDeFiche } from '@/lib/images';
 import { duree } from '@/lib/format';
 
 // Carte d'une fiche dans un carrousel : la photo d'abord, le texte dessous, sans cadre.
@@ -13,11 +14,16 @@ export function CarteFiche({ fiche }: { fiche: FicheResume }) {
     <Link href={{ pathname: '/fiches/[id]', params: { id: fiche.id } }} asChild>
       <Pressable
         style={styles.carte}
-        accessibilityLabel={`${fiche.titre}, ${libellesTypeFiche[fiche.type]}, ${fiche.ageMin} à ${fiche.ageMax} ans, par ${fiche.auteur}`}
+        accessibilityLabel={`${fiche.titre}, ${libelleType(fiche)}, ${fiche.ageMin} à ${fiche.ageMax} ans, par ${fiche.auteur}`}
       >
         <View>
-          <Image source={fiche.image} style={styles.image} contentFit="cover" transition={150} />
-          <Text style={styles.etiquette}>{libellesTypeFiche[fiche.type]}</Text>
+          <Image
+            source={imageDeFiche(fiche)}
+            style={styles.image}
+            contentFit="cover"
+            transition={150}
+          />
+          <Text style={styles.etiquette}>{libelleType(fiche)}</Text>
         </View>
         <Text style={styles.titre} numberOfLines={2}>
           {fiche.titre}
@@ -38,7 +44,7 @@ export function CarteFiche({ fiche }: { fiche: FicheResume }) {
 
 const styles = StyleSheet.create({
   carte: { width: 196, gap: 6 },
-  image: { height: 220, borderRadius: 20, backgroundColor: couleurs.trait },
+  image: { height: 220, borderRadius: 10, backgroundColor: couleurs.trait },
   // Étiquette posée sur la photo, sur fond blanc pour rester lisible quelle que soit l'image.
   etiquette: {
     position: 'absolute',
@@ -46,7 +52,7 @@ const styles = StyleSheet.create({
     left: 10,
     paddingHorizontal: 10,
     paddingVertical: 5,
-    borderRadius: 999,
+    borderRadius: 6,
     overflow: 'hidden',
     backgroundColor: couleurs.surface,
     fontFamily: polices.texteGras,

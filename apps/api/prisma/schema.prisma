@@ -1,6 +1,3 @@
-// Généré par `prisma db pull` à partir de la base : ne pas modifier à la main.
-// Le schéma de référence reste database/01_schema.sql.
-
 generator client {
   provider        = "prisma-client"
   output          = "../src/generated/prisma"
@@ -75,27 +72,30 @@ model favori {
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model fiche {
-  id                  String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  auteur_id           String        @db.Uuid
-  titre               String        @db.VarChar(120)
+  id                  String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  auteur_id           String         @db.Uuid
+  titre               String         @db.VarChar(120)
   type                type_fiche
-  age_min             Int           @db.SmallInt
-  age_max             Int           @db.SmallInt
-  duree_minutes       Int           @db.SmallInt
-  nb_participants_min Int?          @db.SmallInt
-  nb_participants_max Int?          @db.SmallInt
-  objectifs           String?
-  materiel            String?
+  age_min             Int            @db.SmallInt
+  age_max             Int            @db.SmallInt
+  duree_minutes       Int            @db.SmallInt
+  nb_participants_min Int?           @db.SmallInt
+  nb_participants_max Int?           @db.SmallInt
+  objectifs           String[]       @default([])
+  materiel            String[]       @default([])
   deroulement         String
   image_url           String?
-  statut              statut_fiche  @default(BROUILLON)
-  publiee_le          DateTime?     @db.Timestamptz(6)
-  cree_le             DateTime      @default(now()) @db.Timestamptz(6)
-  modifie_le          DateTime      @default(now()) @db.Timestamptz(6)
+  statut              statut_fiche   @default(BROUILLON)
+  publiee_le          DateTime?      @db.Timestamptz(6)
+  cree_le             DateTime       @default(now()) @db.Timestamptz(6)
+  modifie_le          DateTime       @default(now()) @db.Timestamptz(6)
+  type_personnalise   String?        @db.VarChar(40)
   aimer               aimer[]
   commentaire         commentaire[]
   favori              favori[]
-  utilisateur         utilisateur   @relation(fields: [auteur_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  utilisateur         utilisateur    @relation(fields: [auteur_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  notification        notification[]
+  photo_fiche         photo_fiche[]
   signalement         signalement[]
 
   @@index([auteur_id], map: "fiche_auteur_idx")
@@ -175,28 +175,61 @@ model signalement {
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model utilisateur {
-  id                                             String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  email                                          String                   @unique @db.Citext
-  mot_de_passe_hash                              String
-  pseudo                                         String                   @unique @db.VarChar(30)
-  bio                                            String?                  @db.VarChar(300)
-  avatar_url                                     String?
-  role                                           role_utilisateur         @default(ANIMATEUR)
-  xp                                             Int                      @default(0)
-  statut                                         statut_compte            @default(ACTIF)
-  cgu_acceptees_le                               DateTime                 @db.Timestamptz(6)
-  cree_le                                        DateTime                 @default(now()) @db.Timestamptz(6)
-  modifie_le                                     DateTime                 @default(now()) @db.Timestamptz(6)
-  aimer                                          aimer[]
-  badge_obtenu                                   badge_obtenu[]
-  commentaire                                    commentaire[]
-  favori                                         favori[]
-  fiche                                          fiche[]
-  historique_xp                                  historique_xp[]
-  jeton_rafraichissement                         jeton_rafraichissement[]
-  offre                                          offre[]
-  signalement_signalement_admin_idToutilisateur  signalement[]            @relation("signalement_admin_idToutilisateur")
-  signalement_signalement_auteur_idToutilisateur signalement[]            @relation("signalement_auteur_idToutilisateur")
+  id                                                     String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email                                                  String                   @unique @db.Citext
+  mot_de_passe_hash                                      String
+  pseudo                                                 String                   @unique @db.VarChar(30)
+  bio                                                    String?                  @db.VarChar(300)
+  avatar_url                                             String?
+  role                                                   role_utilisateur         @default(ANIMATEUR)
+  xp                                                     Int                      @default(0)
+  statut                                                 statut_compte            @default(ACTIF)
+  cgu_acceptees_le                                       DateTime                 @db.Timestamptz(6)
+  cree_le                                                DateTime                 @default(now()) @db.Timestamptz(6)
+  modifie_le                                             DateTime                 @default(now()) @db.Timestamptz(6)
+  aimer                                                  aimer[]
+  badge_obtenu                                           badge_obtenu[]
+  commentaire                                            commentaire[]
+  favori                                                 favori[]
+  fiche                                                  fiche[]
+  historique_xp                                          historique_xp[]
+  jeton_rafraichissement                                 jeton_rafraichissement[]
+  notification_notification_acteur_idToutilisateur       notification[]           @relation("notification_acteur_idToutilisateur")
+  notification_notification_destinataire_idToutilisateur notification[]           @relation("notification_destinataire_idToutilisateur")
+  offre                                                  offre[]
+  signalement_signalement_admin_idToutilisateur          signalement[]            @relation("signalement_admin_idToutilisateur")
+  signalement_signalement_auteur_idToutilisateur         signalement[]            @relation("signalement_auteur_idToutilisateur")
+}
+
+model migration_appliquee {
+  nom          String   @id
+  appliquee_le DateTime @default(now()) @db.Timestamptz(6)
+}
+
+model photo_fiche {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  fiche_id   String   @db.Uuid
+  url        String
+  ajoutee_le DateTime @default(now()) @db.Timestamptz(6)
+  fiche      fiche    @relation(fields: [fiche_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([fiche_id, ajoutee_le], map: "photo_fiche_fiche_idx")
+}
+
+model notification {
+  id                                                    String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  destinataire_id                                       String            @db.Uuid
+  acteur_id                                             String            @db.Uuid
+  type                                                  type_notification
+  fiche_id                                              String            @db.Uuid
+  lue_le                                                DateTime?         @db.Timestamptz(6)
+  cree_le                                               DateTime          @default(now()) @db.Timestamptz(6)
+  utilisateur_notification_acteur_idToutilisateur       utilisateur       @relation("notification_acteur_idToutilisateur", fields: [acteur_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  utilisateur_notification_destinataire_idToutilisateur utilisateur       @relation("notification_destinataire_idToutilisateur", fields: [destinataire_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  fiche                                                 fiche             @relation(fields: [fiche_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([type, acteur_id, fiche_id, destinataire_id], map: "notification_unique")
+  @@index([destinataire_id, cree_le(sort: Desc)], map: "notification_destinataire_idx")
 }
 
 enum action_xp {
@@ -204,6 +237,7 @@ enum action_xp {
   FICHE_EN_MALLE
   FICHE_AIMEE
   COMMENTAIRE_PUBLIE
+  FICHE_AIMEE_DONNEE
 }
 
 enum role_utilisateur {
@@ -253,4 +287,11 @@ enum type_structure {
   SEJOUR
   PERISCOLAIRE
   AUTRE
+}
+
+enum type_notification {
+  FICHE_AIMEE
+  FICHE_EN_MALLE
+  COMMENTAIRE
+  REPONSE
 }
