@@ -30,7 +30,7 @@ export default function DetailFiche() {
   const { session } = useSession();
   const { donnees: fiche, erreur, recharger } = useRequete<FicheDetail>(`/fiches/${id}`);
   const [action, setAction] = useState<'publier' | 'supprimer' | null>(null);
-  // Réponses de l'API après un « j'aime » ou un ajout à la Malle : elles remplacent
+  // Réponses de l'API après un « j'aime » ou un ajout à la galerie : elles remplacent
   // les valeurs de la fiche chargée, sans avoir à la recharger en entier.
   const [etatAime, setEtatAime] = useState<EtatAime | null>(null);
   const [dansLaMalle, setDansLaMalle] = useState<boolean | null>(null);
@@ -78,11 +78,11 @@ export default function DetailFiche() {
     setAction('supprimer');
     try {
       await appeler('DELETE', `/fiches/${id}`, session!.jeton);
-      // Retour à l'écran précédent ; ouvert par un lien direct, il n'y en a pas : on va à la Malle.
+      // Retour à l'écran précédent ; ouvert par un lien direct, il n'y en a pas : on va à la galerie.
       if (router.canGoBack()) {
         router.back();
       } else {
-        router.replace('/malle');
+        router.replace('/galerie');
       }
     } catch (e) {
       setErreurAction(e instanceof ErreurApi ? e.message : 'Impossible de supprimer la fiche.');
@@ -123,7 +123,7 @@ export default function DetailFiche() {
       await appeler(dansMaMalle ? 'DELETE' : 'PUT', `/fiches/${id}/malle`, session!.jeton);
     } catch (e) {
       setDansLaMalle(dansMaMalle);
-      setErreurAction(e instanceof ErreurApi ? e.message : 'Impossible de modifier ta Malle.');
+      setErreurAction(e instanceof ErreurApi ? e.message : 'Impossible de modifier ta galerie.');
     }
   }
 
@@ -214,7 +214,7 @@ export default function DetailFiche() {
                 <Bookmark size={20} color={couleurs.encre} strokeWidth={2} />
               )}
               <Text style={styles.texteReaction}>
-                {dansMaMalle ? 'Dans ma Malle' : 'Garder dans ma Malle'}
+                {dansMaMalle ? 'Dans ma galerie' : 'Ajouter à ma galerie'}
               </Text>
             </Pressable>
           </View>
@@ -256,7 +256,7 @@ export default function DetailFiche() {
         </Section>
 
         {fiche.photos.length > 0 && (
-          <Section titre={`Galerie (${fiche.photos.length})`}>
+          <Section titre={`Photos (${fiche.photos.length})`}>
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}

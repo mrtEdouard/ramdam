@@ -366,7 +366,7 @@ export function FormulaireFiche({ fiche, enregistrer, termine }: Props) {
 
       <View style={styles.groupe}>
         <Text style={styles.libelle}>
-          Galerie{' '}
+          Photos{' '}
           <Text style={styles.compte}>
             ({PHOTOS_PAR_FICHE - placesGalerie}/{PHOTOS_PAR_FICHE})
           </Text>

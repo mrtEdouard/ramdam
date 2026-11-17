@@ -1,5 +1,5 @@
 // Niveaux de gamification : l'emblème du profil, un feu de camp, grandit à chaque palier.
-// L'XP est attribuée par les triggers de la base (fiche publiée +50, ajoutée à une Malle +10,
+// L'XP est attribuée par les triggers de la base (fiche publiée +50, ajoutée à une galerie +10,
 // commentaire +5, fiche aimée +2) ; ce fichier ne fait que la traduire en niveau.
 export const niveaux = [
   { numero: 1, nom: 'Étincelle', xpMin: 0 },
@@ -62,7 +62,7 @@ export function raisonXp(mouvement: MouvementXp): string {
     case 'FICHE_AIMEE':
       return `${quelquUn} a aimé ${fiche}`;
     case 'FICHE_EN_MALLE':
-      return `${quelquUn} a gardé ${fiche} dans sa Malle`;
+      return `${quelquUn} a ajouté ${fiche} à sa galerie`;
     case 'FICHE_AIMEE_DONNEE':
       return `Tu as aimé ${fiche}`;
     case 'COMMENTAIRE_PUBLIE':

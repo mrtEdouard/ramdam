@@ -154,7 +154,7 @@ export type FicheDetail = FicheResume & {
   deroulement: string;
   photos: PhotoFiche[];
   estAuteur: boolean;
-  // Pour la personne qui regarde la fiche : l'a-t-elle aimée, l'a-t-elle gardée dans sa Malle ?
+  // Pour la personne qui regarde la fiche : l'a-t-elle aimée, l'a-t-elle ajoutée à sa galerie ?
   aimeeParMoi: boolean;
   dansMaMalle: boolean;
 };

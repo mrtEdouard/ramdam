@@ -39,7 +39,7 @@ describe('raisonXp', () => {
       'karim a aimé « Béret express »',
     );
     expect(raisonXp({ ...base, action: 'FICHE_EN_MALLE', par: 'karim' })).toBe(
-      'karim a gardé « Béret express » dans sa Malle',
+      'karim a ajouté « Béret express » à sa galerie',
     );
   });
 

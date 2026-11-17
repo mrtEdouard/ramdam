@@ -1,6 +1,6 @@
 import { router, usePathname, type Href } from 'expo-router';
 import {
-  Backpack,
+  Images,
   BriefcaseBusiness,
   Compass,
   House,
@@ -16,7 +16,7 @@ const onglets: { chemin: Href & string; libelle: string; icone: LucideIcon }[] =
   { chemin: '/', libelle: 'Accueil', icone: House },
   { chemin: '/activites', libelle: 'Activités', icone: Compass },
   { chemin: '/offres', libelle: 'Offres', icone: BriefcaseBusiness },
-  { chemin: '/malle', libelle: 'Malle', icone: Backpack },
+  { chemin: '/galerie', libelle: 'Galerie', icone: Images },
 ];
 
 // Barre de navigation du bas : quatre onglets et, au centre, le bouton de création.

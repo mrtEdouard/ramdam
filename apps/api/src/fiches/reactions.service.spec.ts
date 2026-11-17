@@ -71,7 +71,7 @@ describe('Malle', () => {
   it('refuse de garder sa propre fiche (RG-14)', async () => {
     prisma.fiche.findUnique.mockResolvedValue(ficheDeLea);
     await expect(service.garder('id-fiche', lea)).rejects.toThrow(
-      'Tes fiches sont déjà dans ta Malle',
+      'Tes fiches sont déjà dans ta galerie',
     );
     expect(prisma.favori.upsert).not.toHaveBeenCalled();
   });

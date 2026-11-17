@@ -8,9 +8,9 @@ import { MessageErreur } from '@/components/message-erreur';
 import { couleurs, polices } from '@/constants/theme';
 import { useRequete } from '@/hooks/use-requete';
 
-// La Malle : les fiches de la personne (brouillons compris), puis celles des autres qu'elle garde.
+// La galerie : les fiches de la personne (brouillons compris), puis celles des autres qu'elle y a ajoutées.
 // Une fiche gardée est un simple lien : on voit toujours la dernière version écrite par son auteur.
-export default function Malle() {
+export default function Galerie() {
   const { donnees: fiches, erreur, chargement } = useRequete<FicheResume[]>('/fiches/miennes');
   const gardees = useRequete<FicheResume[]>('/fiches/gardees');
 
@@ -18,7 +18,7 @@ export default function Malle() {
     <SafeAreaView style={styles.ecran} edges={['top']}>
       <ScrollView contentContainerStyle={styles.page}>
         <Text style={styles.titre} accessibilityRole="header">
-          Ma Malle
+          Ma galerie
         </Text>
 
         <View style={styles.enteteSection}>
@@ -49,14 +49,14 @@ export default function Malle() {
         ))}
 
         <Text style={[styles.titreSection, styles.espace]} accessibilityRole="header">
-          Fiches gardées
+          Fiches ajoutées
         </Text>
         {gardees.erreur && <MessageErreur message={gardees.erreur} />}
         {gardees.donnees?.length === 0 && (
           <View style={styles.bientot}>
             <Bookmark size={22} color={couleurs.encre2} />
             <Text style={styles.texteBientot}>
-              Garde les fiches des autres animateurs avec « Garder dans ma Malle » : elles arrivent
+              Ajoute les fiches des autres animateurs avec « Ajouter à ma galerie » : elles arrivent
               ici.
             </Text>
           </View>

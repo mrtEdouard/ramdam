@@ -4,7 +4,7 @@ import type { UtilisateurJwt } from '../auth/jwt-auth.guard.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { AVEC_AUTEUR_ET_AIMES, versResume } from './fiches.service.js';
 
-// « J'aime » et Malle : ce qu'un animateur fait sur les fiches des autres.
+// « J'aime » et galerie (appelée « Malle » dans le code et la base) : ce qu'un animateur fait sur les fiches des autres.
 // L'XP de l'auteur est donnée par les triggers de la base (aimer_xp : +2, favori_xp : +10),
 // une seule fois par personne grâce à l'historique (RG-17, RG-18).
 @Injectable()
@@ -35,7 +35,7 @@ export class ReactionsService {
 
   async garder(id: string, utilisateur: UtilisateurJwt) {
     // RG-14 : la base refuse aussi, mais on donne ici un message clair.
-    await this.ficheDUnAutre(id, utilisateur, 'Tes fiches sont déjà dans ta Malle');
+    await this.ficheDUnAutre(id, utilisateur, 'Tes fiches sont déjà dans ta galerie');
     // La Malle garde un simple lien vers la fiche : si son auteur la modifie, on voit la nouvelle version.
     await this.prisma.favori.upsert({
       where: cle(id, utilisateur),

@@ -13,7 +13,7 @@ export default function LayoutOnglets() {
       <Tabs.Screen name="index" />
       <Tabs.Screen name="activites" />
       <Tabs.Screen name="offres" />
-      <Tabs.Screen name="malle" />
+      <Tabs.Screen name="galerie" />
     </Tabs>
   );
 }

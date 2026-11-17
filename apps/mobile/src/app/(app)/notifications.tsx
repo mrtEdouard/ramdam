@@ -1,6 +1,6 @@
 import type { Notification } from '@ramdam/shared';
 import { Link, router } from 'expo-router';
-import { Backpack, Bell, Heart, MessageCircle, type LucideIcon } from 'lucide-react-native';
+import { Bell, Images, Heart, MessageCircle, type LucideIcon } from 'lucide-react-native';
 import { useEffect } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Avatar } from '@/components/avatar';
@@ -11,7 +11,7 @@ import { appeler } from '@/lib/api';
 import { depuis } from '@/lib/format';
 import { useSession } from '@/session/session-context';
 
-// Qui a aimé mes fiches, qui les a gardées dans sa Malle (RG-24).
+// Qui a aimé mes fiches, qui les a ajoutées à sa galerie (RG-24).
 export default function Notifications() {
   const { session } = useSession();
   const {
@@ -78,11 +78,11 @@ const types: Record<
     apres: '',
   },
   FICHE_EN_MALLE: {
-    icone: Backpack,
+    icone: Images,
     couleur: couleurs.encre,
     plein: false,
-    avant: 'a gardé ta fiche',
-    apres: ' dans sa Malle',
+    avant: 'a ajouté ta fiche',
+    apres: ' à sa galerie',
   },
   COMMENTAIRE: {
     icone: MessageCircle,

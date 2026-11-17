@@ -15,7 +15,7 @@ import { useSession } from '@/session/session-context';
 // Les gains d'XP fixés par les triggers de la base (database/01_schema.sql).
 const gainsXp = [
   { action: 'Publier une fiche', points: 50 },
-  { action: 'Ta fiche est ajoutée à une Malle', points: 10 },
+  { action: 'Ta fiche est ajoutée à une galerie', points: 10 },
   { action: 'Commenter la fiche d’un autre (1 fois par fiche)', points: 5 },
   { action: 'Ta fiche reçoit un « j’aime »', points: 2 },
   { action: 'Aimer la fiche d’un autre (10 fois par jour)', points: 1 },

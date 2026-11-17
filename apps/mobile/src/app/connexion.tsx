@@ -51,7 +51,7 @@ export default function Connexion() {
   return (
     <EcranAuth
       titre="Te revoilà"
-      intro="Connecte-toi pour retrouver tes fiches et ta Malle."
+      intro="Connecte-toi pour retrouver tes fiches et ta galerie."
       pied={
         <Text style={texte.courant}>
           Pas encore de compte ?{' '}
