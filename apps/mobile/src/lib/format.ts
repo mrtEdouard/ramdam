@@ -60,3 +60,34 @@ export function compteur(nombre: number) {
   }
   return `${(nombre / 1000).toFixed(1).replace('.', ',').replace(',0', '')} k`;
 }
+
+const JOUR = 24 * 60 * 60 * 1000;
+// Nombre de jours entre deux dates sans heure (AAAA-MM-JJ), en ignorant les fuseaux.
+const joursEntre = (debut: string, fin: string) =>
+  Math.round((Date.parse(fin) - Date.parse(debut)) / JOUR);
+const aujourdhui = () => new Date().toISOString().slice(0, 10);
+
+// Durée d'une offre : « 5 jours », « 3 semaines » ; rien pour un poste à l'année (plus de 2 mois).
+export function dureeOffre(dateDebut: string, dateFin: string) {
+  const jours = joursEntre(dateDebut, dateFin) + 1;
+  if (jours > 62) {
+    return null;
+  }
+  if (jours < 10) {
+    return `${jours} jour${jours > 1 ? 's' : ''}`;
+  }
+  const semaines = Math.round(jours / 7);
+  return `${semaines} semaine${semaines > 1 ? 's' : ''}`;
+}
+
+// « Commence demain », « Commence dans 12 j », « En cours » ; rien si le départ est loin (> 30 j).
+export function departProche(dateDebut: string) {
+  const jours = joursEntre(aujourdhui(), dateDebut);
+  if (jours <= 0) {
+    return 'En cours';
+  }
+  if (jours === 1) {
+    return 'Commence demain';
+  }
+  return jours <= 30 ? `Commence dans ${jours} j` : null;
+}

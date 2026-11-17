@@ -40,6 +40,7 @@ type Saisie = {
   structure: string;
   typeStructure: TypeStructure | undefined;
   region: Region | undefined;
+  ville: string;
   dateDebut: string;
   dateFin: string;
   description: string;
@@ -73,6 +74,7 @@ export function FormulaireOffre({ offre, enregistrer, termine }: Props) {
     structure: offre?.structure ?? '',
     typeStructure: offre?.typeStructure,
     region: regions.find((r) => r === offre?.region),
+    ville: offre?.ville ?? '',
     dateDebut: offre ? versFrancais(offre.dateDebut) : '',
     dateFin: offre ? versFrancais(offre.dateFin) : '',
     description: offre?.description ?? '',
@@ -110,6 +112,7 @@ export function FormulaireOffre({ offre, enregistrer, termine }: Props) {
     champ:
       | 'intitule'
       | 'structure'
+      | 'ville'
       | 'dateDebut'
       | 'dateFin'
       | 'description'
@@ -190,6 +193,8 @@ export function FormulaireOffre({ offre, enregistrer, termine }: Props) {
           />
         ))}
       </Groupe>
+
+      <ChampTexte libelle="Ville" placeholder="Annecy" maxLength={80} {...lier('ville')} />
 
       <View style={styles.groupe}>
         <Text style={styles.libelle}>Région</Text>

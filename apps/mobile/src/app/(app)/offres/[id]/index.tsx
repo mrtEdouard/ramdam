@@ -11,6 +11,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  useWindowDimensions,
   View,
 } from 'react-native';
 import { Bouton } from '@/components/bouton';
@@ -31,6 +32,10 @@ export default function DetailOffre() {
   const [erreurAction, setErreurAction] = useState<string | null>(null);
   // Photo affichée en grand, ou null.
   const [photoOuverte, setPhotoOuverte] = useState<string | null>(null);
+  // Photo visible dans le défilé, pour le compteur « 2/6 ».
+  const [photoVue, setPhotoVue] = useState(0);
+  // Largeur du contenu : l'écran (720 px au plus) moins les marges de 20 px.
+  const largeurPhoto = Math.min(useWindowDimensions().width, 720) - 40;
 
   if (erreur) {
     return (
@@ -91,29 +96,40 @@ export default function DetailOffre() {
 
   return (
     <ScrollView contentContainerStyle={styles.page}>
-      {/* Photos du séjour : une bande qui défile ; un appui agrandit la photo. */}
+      {/* Photos du séjour : une à la fois, en faisant glisser ; un appui l'agrandit. */}
       {offre.photos.length > 0 && (
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.horsMarge}
-          contentContainerStyle={styles.photos}
-        >
-          {offre.photos.map((photo, position) => (
-            <Pressable
-              key={photo.id}
-              onPress={() => setPhotoOuverte(photo.url)}
-              accessibilityRole="imagebutton"
-              accessibilityLabel={`Agrandir la photo ${position + 1} sur ${offre.photos.length}`}
-            >
-              <Image
-                source={adresseImage(photo.url)}
-                style={[styles.photo, offre.photos.length === 1 && styles.photoSeule]}
-                contentFit="cover"
-              />
-            </Pressable>
-          ))}
-        </ScrollView>
+        <View>
+          <ScrollView
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            onScroll={(e) => setPhotoVue(Math.round(e.nativeEvent.contentOffset.x / largeurPhoto))}
+            scrollEventThrottle={32}
+            style={[styles.photos, { width: largeurPhoto }]}
+          >
+            {offre.photos.map((photo, position) => (
+              <Pressable
+                key={photo.id}
+                onPress={() => setPhotoOuverte(photo.url)}
+                accessibilityRole="imagebutton"
+                accessibilityLabel={`Agrandir la photo ${position + 1} sur ${offre.photos.length}`}
+              >
+                {/* Format 4:3 calé sur la largeur de l'écran ; « cover » remplit le cadre
+                    sans déformer la photo (les bords qui dépassent sont rognés). */}
+                <Image
+                  source={adresseImage(photo.url)}
+                  style={{ width: largeurPhoto, height: largeurPhoto * 0.75 }}
+                  contentFit="cover"
+                />
+              </Pressable>
+            ))}
+          </ScrollView>
+          {offre.photos.length > 1 && (
+            <Text style={styles.compteurPhotos}>
+              {photoVue + 1}/{offre.photos.length}
+            </Text>
+          )}
+        </View>
       )}
 
       {cloturee && (
@@ -133,7 +149,10 @@ export default function DetailOffre() {
       </View>
 
       <View style={styles.infos}>
-        <Info icone={<MapPin size={18} color={couleurs.encre2} />} texte={offre.region} />
+        <Info
+          icone={<MapPin size={18} color={couleurs.encre2} />}
+          texte={`${offre.ville}, ${offre.region}`}
+        />
         <Info
           icone={<CalendarDays size={18} color={couleurs.encre2} />}
           texte={periode(new Date(offre.dateDebut), new Date(offre.dateFin))}
@@ -240,10 +259,20 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingBottom: 40,
   },
-  horsMarge: { marginHorizontal: -20, marginTop: -4 },
-  photos: { gap: 8, paddingHorizontal: 20 },
-  photo: { width: 260, height: 190, borderRadius: 8, backgroundColor: couleurs.trait },
-  photoSeule: { width: 680, maxWidth: '100%', height: 240 },
+  photos: { borderRadius: 10, backgroundColor: couleurs.trait },
+  compteurPhotos: {
+    position: 'absolute',
+    right: 10,
+    bottom: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 4,
+    overflow: 'hidden',
+    backgroundColor: 'rgba(30, 26, 22, 0.7)',
+    fontFamily: polices.texteGras,
+    fontSize: 12,
+    color: couleurs.surface,
+  },
   voile: {
     flex: 1,
     alignItems: 'center',

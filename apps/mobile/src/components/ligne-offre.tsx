@@ -16,7 +16,7 @@ export function LigneOffre({ offre }: { offre: OffreResume }) {
     <Link href={{ pathname: '/offres/[id]', params: { id: offre.id } }} asChild>
       <Pressable
         style={styles.ligne}
-        accessibilityLabel={`${offre.intitule}, ${offre.structure}, ${offre.region}, ${periode(debut, new Date(offre.dateFin))}${offre.statut === 'CLOTUREE' ? ', clôturée' : ''}`}
+        accessibilityLabel={`${offre.intitule}, ${offre.structure}, ${offre.ville}, ${periode(debut, new Date(offre.dateFin))}${offre.statut === 'CLOTUREE' ? ', clôturée' : ''}`}
       >
         <View style={styles.date}>
           <Text style={styles.jour}>{jour}</Text>
@@ -27,7 +27,7 @@ export function LigneOffre({ offre }: { offre: OffreResume }) {
             {offre.intitule}
           </Text>
           <Text style={styles.details} numberOfLines={1}>
-            {offre.structure} · {offre.region}
+            {offre.structure} · {offre.ville}
           </Text>
           {offre.statut === 'CLOTUREE' && <Text style={styles.cloturee}>Clôturée</Text>}
         </View>

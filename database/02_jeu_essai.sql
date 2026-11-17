@@ -50,10 +50,10 @@ INSERT INTO favori (utilisateur_id, fiche_id) VALUES
   ('00000000-0000-0000-0000-000000000007', '10000000-0000-0000-0000-000000000001');
 
 -- Offres : 2 ouvertes, 1 clôturée
-INSERT INTO offre (id, directeur_id, intitule, structure, type_structure, description, region, date_debut, date_fin, diplome_requis, contact_externe, statut) VALUES
-  ('30000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000002', 'Animateur·rice accueil de loisirs', 'ALSH Les Lucioles', 'ALSH',   'Mercredis et vacances scolaires, 3-6 ans.', 'Occitanie', '2027-02-08', '2027-07-31', 'BAFA',   'recrutement@lucioles.test', 'OUVERTE'),
-  ('30000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000003', 'Animateur·rice séjour montagne',   'Altitude Jeunes',   'SEJOUR', 'Séjour de 3 semaines, 8-14 ans.',           'Auvergne-Rhône-Alpes', '2027-07-05', '2027-07-26', 'BAFA', 'https://altitude-jeunes.test/recrutement', 'OUVERTE'),
-  ('30000000-0000-0000-0000-000000000003', '00000000-0000-0000-0000-000000000003', 'Animateur·rice séjour mer',        'Altitude Jeunes',   'SEJOUR', 'Séjour terminé.',                           'Bretagne', '2026-07-06', '2026-07-27', NULL, 'https://altitude-jeunes.test/recrutement', 'CLOTUREE');
+INSERT INTO offre (id, directeur_id, intitule, structure, type_structure, description, region, ville, date_debut, date_fin, diplome_requis, contact_externe, statut) VALUES
+  ('30000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000002', 'Animateur·rice accueil de loisirs', 'ALSH Les Lucioles', 'ALSH',   'Mercredis et vacances scolaires, 3-6 ans.', 'Occitanie', 'Montpellier', '2027-02-08', '2027-07-31', 'BAFA',   'recrutement@lucioles.test', 'OUVERTE'),
+  ('30000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000003', 'Animateur·rice séjour montagne',   'Altitude Jeunes',   'SEJOUR', 'Séjour de 3 semaines, 8-14 ans.',           'Auvergne-Rhône-Alpes', 'Annecy', '2027-07-05', '2027-07-26', 'BAFA', 'https://altitude-jeunes.test/recrutement', 'OUVERTE'),
+  ('30000000-0000-0000-0000-000000000003', '00000000-0000-0000-0000-000000000003', 'Animateur·rice séjour mer',        'Altitude Jeunes',   'SEJOUR', 'Séjour terminé.',                           'Bretagne', 'Saint-Malo', '2026-07-06', '2026-07-27', NULL, 'https://altitude-jeunes.test/recrutement', 'CLOTUREE');
 
 -- Badges et obtentions
 INSERT INTO badge (id, code, nom, description, icone) VALUES

@@ -6,6 +6,7 @@ const valide = {
   structure: 'Les Chamois',
   typeStructure: 'SEJOUR',
   region: 'Occitanie',
+  ville: 'Millau',
   dateDebut: '2099-07-05',
   dateFin: '2099-07-26',
   description: 'Séjour de trois semaines avec des 8-12 ans.',
@@ -43,5 +44,12 @@ describe('offreSchema', () => {
 
   it('refuse une région hors de la liste', () => {
     expect(premiereErreur({ ...valide, region: 'IDF' })?.path).toEqual(['region']);
+  });
+
+  it('exige une ville', () => {
+    expect(premiereErreur({ ...valide, ville: '  ' })).toMatchObject({
+      path: ['ville'],
+      message: 'Indique la ville',
+    });
   });
 });

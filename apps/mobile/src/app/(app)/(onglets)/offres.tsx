@@ -21,7 +21,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CarteRegions } from '@/components/carte-regions';
-import { LigneOffre } from '@/components/ligne-offre';
+import { CarteOffre } from '@/components/carte-offre';
 import { MessageErreur } from '@/components/message-erreur';
 import { Puce } from '@/components/puce';
 import { couleurs, polices } from '@/constants/theme';
@@ -110,9 +110,14 @@ export default function Offres() {
   const entete = (
     <View style={styles.entete}>
       <View style={styles.ligneTitre}>
-        <Text style={styles.titre} accessibilityRole="header">
-          Offres
-        </Text>
+        <View style={styles.blocTitre}>
+          <Text style={styles.titre} accessibilityRole="header">
+            Offres
+          </Text>
+          <Text style={styles.sousTitre}>
+            Colos, centres de loisirs, périscolaire : ils recrutent.
+          </Text>
+        </View>
         {estDirecteur && (
           <Pressable
             onPress={() => router.push('/offres/nouvelle')}
@@ -174,7 +179,7 @@ export default function Offres() {
       <FlatList
         data={offres}
         keyExtractor={(offre) => offre.id}
-        renderItem={({ item }) => <LigneOffre offre={item} />}
+        renderItem={({ item, index }) => <CarteOffre offre={item} position={index} />}
         ItemSeparatorComponent={() => <View style={styles.separateur} />}
         ListHeaderComponent={entete}
         ListEmptyComponent={
@@ -309,7 +314,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: MARGE,
     paddingBottom: 32,
   },
-  entete: { gap: 12, paddingTop: 12, marginBottom: 8 },
+  entete: { gap: 12, paddingTop: 12, marginBottom: 16 },
   ligneTitre: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   titre: { fontFamily: polices.titre, fontSize: 30, letterSpacing: -1, color: couleurs.encre },
   publier: {
@@ -369,7 +374,9 @@ const styles = StyleSheet.create({
   horsMarge: { marginHorizontal: -MARGE },
   puces: { gap: 8, paddingHorizontal: MARGE },
   total: { fontFamily: polices.texteMoyen, fontSize: 14, color: couleurs.encre2 },
-  separateur: { height: 1, backgroundColor: couleurs.trait },
+  separateur: { height: 18 },
+  blocTitre: { flex: 1, gap: 2 },
+  sousTitre: { fontFamily: polices.texte, fontSize: 14, color: couleurs.encre2 },
   vide: {
     fontFamily: polices.texte,
     fontSize: 15,

@@ -62,6 +62,7 @@ export const offreSchema = z
       .max(120, '120 caractères maximum'),
     typeStructure: z.enum(typesStructure, 'Choisis le type de structure'),
     region: z.enum(regions, 'Choisis une région'),
+    ville: z.string().trim().min(2, 'Indique la ville').max(80, '80 caractères maximum'),
     dateDebut: jour,
     dateFin: jour,
     description: z
@@ -122,6 +123,7 @@ export type OffreResume = {
   structure: string;
   typeStructure: TypeStructure;
   region: string;
+  ville: string;
   dateDebut: string;
   dateFin: string;
   directeur: string;

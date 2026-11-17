@@ -1,5 +1,5 @@
 import type { ImageSource } from 'expo-image';
-import type { FicheResume, TypeFiche } from '@ramdam/shared';
+import type { FicheResume, OffreResume, TypeFiche, TypeStructure } from '@ramdam/shared';
 import { URL_API } from './api';
 
 // Photo par défaut selon le type d'activité, quand l'auteur n'a pas mis de couverture.
@@ -20,4 +20,16 @@ export function adresseImage(url: string): ImageSource {
 
 export function imageDeFiche(fiche: Pick<FicheResume, 'type' | 'imageUrl'>): ImageSource {
   return fiche.imageUrl ? adresseImage(fiche.imageUrl) : photosParType[fiche.type];
+}
+
+// Photo d'ambiance d'une offre sans photo, selon le type de structure.
+const photosParStructure: Record<TypeStructure, ImageSource> = {
+  SEJOUR: require('@/assets/images/photos/veillee.jpg'),
+  ALSH: require('@/assets/images/photos/nature.jpg'),
+  PERISCOLAIRE: require('@/assets/images/photos/fresque.jpg'),
+  AUTRE: require('@/assets/images/photos/relais.jpg'),
+};
+
+export function imageDOffre(offre: Pick<OffreResume, 'typeStructure' | 'photoUrl'>): ImageSource {
+  return offre.photoUrl ? adresseImage(offre.photoUrl) : photosParStructure[offre.typeStructure];
 }
