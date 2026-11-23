@@ -4,7 +4,6 @@ import {
   Check,
   ChevronDown,
   ChevronUp,
-  Info,
   Lock,
   LogOut,
   Pencil,
@@ -15,7 +14,7 @@ import {
 import { useCallback, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp, FadeOut } from 'react-native-reanimated';
-import { CarteProfil, CompteursProfil } from '@/components/carte-profil';
+import { CarteProfil } from '@/components/carte-profil';
 import { Embleme } from '@/components/embleme';
 import { FenetreInstallation } from '@/components/fenetre-installation';
 import { LiensLegaux } from '@/components/page-legale';
@@ -90,48 +89,36 @@ export default function PageProfil() {
 
   return (
     <ScrollView contentContainerStyle={styles.page} showsVerticalScrollIndicator={false}>
-      <CarteProfil profil={profil}>
-        <Pressable
-          onPress={() => setBaremeVisible(true)}
-          style={styles.boutonInfo}
-          hitSlop={10}
-          accessibilityRole="button"
-          accessibilityLabel="Comment gagner de l’XP"
+      <CarteProfil profil={profil} surNiveau={() => setBaremeVisible(!baremeVisible)} />
+
+      {/* Le barème se déplie sous l'en-tête quand on touche la ligne du niveau. */}
+      {baremeVisible && (
+        <Animated.View
+          entering={FadeIn.duration(180)}
+          exiting={FadeOut.duration(150)}
+          style={styles.bareme}
         >
-          <Info size={20} color="#B8AFA3" strokeWidth={2} />
-        </Pressable>
-
-        {/* Le barème s'ouvre par-dessus la carte, sans quitter le profil. */}
-        {baremeVisible && (
-          <Animated.View
-            entering={FadeIn.duration(180)}
-            exiting={FadeOut.duration(150)}
-            style={styles.bareme}
-          >
-            <View style={styles.enteteBareme}>
-              <Text style={styles.titreBareme} accessibilityRole="header">
-                Gagner de l’XP
-              </Text>
-              <Pressable
-                onPress={() => setBaremeVisible(false)}
-                hitSlop={10}
-                accessibilityRole="button"
-                accessibilityLabel="Fermer le barème"
-              >
-                <X size={22} color={couleurs.surface} strokeWidth={2} />
-              </Pressable>
+          <View style={styles.enteteBareme}>
+            <Text style={styles.titreBareme} accessibilityRole="header">
+              Gagner de l’XP
+            </Text>
+            <Pressable
+              onPress={() => setBaremeVisible(false)}
+              hitSlop={10}
+              accessibilityRole="button"
+              accessibilityLabel="Fermer le barème"
+            >
+              <X size={20} color={couleurs.encre2} strokeWidth={2} />
+            </Pressable>
+          </View>
+          {gainsXp.map(({ action, points }, position) => (
+            <View key={action} style={[styles.ligneGain, position > 0 && styles.ligneGainTrait]}>
+              <Text style={styles.action}>{action}</Text>
+              <Text style={styles.points}>+{points} XP</Text>
             </View>
-            {gainsXp.map(({ action, points }) => (
-              <View key={action} style={styles.ligneGain}>
-                <Text style={styles.action}>{action}</Text>
-                <Text style={styles.points}>+{points} XP</Text>
-              </View>
-            ))}
-          </Animated.View>
-        )}
-      </CarteProfil>
-
-      <CompteursProfil profil={profil} />
+          ))}
+        </Animated.View>
+      )}
 
       <Pressable
         onPress={() => router.push('/modifier-profil')}
@@ -343,7 +330,6 @@ const styles = StyleSheet.create({
   raison: { fontFamily: polices.texte, fontSize: 15, color: couleurs.encre },
   gain: { fontFamily: polices.texteGras, fontSize: 15, color: couleurs.corail },
   separateur: { height: 1, marginVertical: 6, backgroundColor: couleurs.trait },
-  boutonInfo: { position: 'absolute', top: 14, right: 14, padding: 4 },
   modifier: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -356,37 +342,30 @@ const styles = StyleSheet.create({
     backgroundColor: couleurs.surface,
   },
   texteModifier: { fontFamily: polices.texteGras, fontSize: 15, color: couleurs.encre },
-  // Panneau du barème, posé sur toute la carte sombre.
+  // Panneau clair du barème, sous l'en-tête du profil.
   bareme: {
-    ...StyleSheet.absoluteFill,
-    justifyContent: 'center',
-    gap: 6,
-    padding: 24,
-    borderRadius: 14,
-    backgroundColor: 'rgba(16, 14, 25, 0.97)',
+    padding: 16,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: couleurs.trait,
+    backgroundColor: couleurs.surface,
   },
   enteteBareme: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   titreBareme: {
     fontFamily: polices.titre,
-    fontSize: 22,
-    letterSpacing: -0.5,
-    color: couleurs.surface,
+    fontSize: 18,
+    letterSpacing: -0.3,
+    color: couleurs.encre,
   },
-  ligneGain: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.08)',
-  },
-  action: { flex: 1, fontFamily: polices.texte, fontSize: 15, color: couleurs.surface },
-  points: { fontFamily: polices.texteGras, fontSize: 15, color: '#F5C24C' },
+  ligneGain: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 9 },
+  ligneGainTrait: { borderTopWidth: 1, borderTopColor: couleurs.trait },
+  action: { flex: 1, fontFamily: polices.texte, fontSize: 15, color: couleurs.encre },
+  points: { fontFamily: polices.texteGras, fontSize: 15, color: couleurs.corail },
   deconnexion: {
     flexDirection: 'row',
     alignItems: 'center',

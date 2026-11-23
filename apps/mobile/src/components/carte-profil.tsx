@@ -1,69 +1,87 @@
 import { niveauPour, type Profil } from '@ramdam/shared';
-import { BadgeCheck } from 'lucide-react-native';
-import type { ReactNode } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { BadgeCheck, Info } from 'lucide-react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Avatar } from '@/components/avatar';
 import { Embleme } from '@/components/embleme';
 import { couleurs, polices } from '@/constants/theme';
 import { compteur, moisEtAnnee } from '@/lib/format';
 
-// Le vert du badge Directeur, éclairci pour rester lisible sur la carte sombre.
-const VERT_SUR_NUIT = '#93CDAE';
+type Props = {
+  profil: Profil;
+  // Sur son propre profil : un appui sur la ligne du niveau affiche le barème d'XP.
+  surNiveau?: () => void;
+};
 
-// Carte « nuit » en tête d'un profil : insigne de rang, pseudo, rôle et ancienneté.
-// Utilisée pour son propre profil et pour le profil public des autres animateurs.
-// children : éléments posés par-dessus la carte (bouton et barème d'XP sur son propre profil).
-export function CarteProfil({ profil, children }: { profil: Profil; children?: ReactNode }) {
+// En-tête d'un profil, à la manière d'un réseau social : la photo et les compteurs
+// sur une ligne, puis le pseudo, le rôle, le niveau et la bio.
+// Utilisé pour son propre profil et pour le profil public des autres animateurs.
+export function CarteProfil({ profil, surNiveau }: Props) {
   const { actuel } = niveauPour(profil.xp);
+  const niveau = `Niveau ${actuel.numero} · ${actuel.nom}`;
 
   return (
-    <View style={styles.identite}>
-      <View>
-        <View accessibilityLabel={`Emblème niveau ${actuel.numero}, ${actuel.nom}`} accessible>
-          <Embleme niveau={actuel.numero} taille={220} />
+    <View style={styles.entete}>
+      <View style={styles.ligne}>
+        {/* La photo dans un anneau ; l'emblème du rang posé dessus, comme un badge. */}
+        <View>
+          <View style={styles.anneau}>
+            <Avatar pseudo={profil.pseudo} url={profil.avatarUrl} taille={84} />
+          </View>
+          <View
+            style={styles.embleme}
+            accessible
+            accessibilityLabel={`Emblème niveau ${actuel.numero}, ${actuel.nom}`}
+          >
+            <Embleme niveau={actuel.numero} taille={46} />
+          </View>
         </View>
-        {/* La photo de profil, en médaillon sur l'emblème de rang. */}
-        <View style={styles.medaillon}>
-          <Avatar pseudo={profil.pseudo} url={profil.avatarUrl} taille={76} />
+
+        <View style={styles.compteurs}>
+          <Compteur
+            valeur={profil.fichesPubliees}
+            libelle={profil.fichesPubliees > 1 ? 'activités' : 'activité'}
+          />
+          <Compteur valeur={profil.aimesRecus} libelle="j’aime" />
+          <Compteur valeur={profil.xp} libelle="XP" />
         </View>
       </View>
-      <Text style={styles.rang}>
-        Niveau {actuel.numero} · {actuel.nom}
-      </Text>
-      <Text style={styles.pseudo} accessibilityRole="header">
-        {profil.pseudo}
-      </Text>
-      <View style={styles.ligneRole}>
-        {profil.role === 'DIRECTEUR' ? (
-          <View style={styles.role}>
-            <BadgeCheck size={15} color={VERT_SUR_NUIT} strokeWidth={2} />
-            <Text style={[styles.texteRole, { color: VERT_SUR_NUIT }]}>Directeur</Text>
-          </View>
+
+      <View style={styles.identite}>
+        <View style={styles.lignePseudo}>
+          <Text style={styles.pseudo} accessibilityRole="header">
+            {profil.pseudo}
+          </Text>
+          {profil.role === 'DIRECTEUR' && (
+            <View style={styles.badge}>
+              <BadgeCheck size={14} color={couleurs.succes} strokeWidth={2.2} />
+              <Text style={styles.texteBadge}>Directeur</Text>
+            </View>
+          )}
+        </View>
+
+        {surNiveau ? (
+          <Pressable
+            onPress={surNiveau}
+            style={styles.ligneNiveau}
+            hitSlop={6}
+            accessibilityRole="button"
+            accessibilityLabel={`${niveau}. Comment gagner de l’XP`}
+          >
+            <Text style={styles.niveau}>{niveau}</Text>
+            <Info size={15} color={couleurs.encre3} strokeWidth={2} />
+          </Pressable>
         ) : (
-          <Text style={styles.texteRole}>Animateur</Text>
+          <Text style={styles.niveau}>{niveau}</Text>
         )}
+
+        {profil.bio && <Text style={styles.bio}>{profil.bio}</Text>}
+
         <Text style={styles.depuis}>
-          · membre depuis {moisEtAnnee(new Date(profil.membreDepuis))}
+          {/* Le badge dit déjà « Directeur » : on ne le répète pas ici. */}
+          {profil.role === 'DIRECTEUR' ? 'Membre' : 'Animateur · membre'} depuis{' '}
+          {moisEtAnnee(new Date(profil.membreDepuis))}
         </Text>
       </View>
-      {profil.bio && <Text style={styles.bio}>{profil.bio}</Text>}
-      {children}
-    </View>
-  );
-}
-
-// Compteurs publics, comme les abonnés d'un réseau social.
-export function CompteursProfil({ profil }: { profil: Profil }) {
-  return (
-    <View style={styles.compteurs}>
-      <Compteur
-        valeur={profil.fichesPubliees}
-        libelle={profil.fichesPubliees > 1 ? 'activités publiées' : 'activité publiée'}
-      />
-      <View style={styles.separateurVertical} />
-      <Compteur valeur={profil.aimesRecus} libelle="« j’aime » reçus" />
-      <View style={styles.separateurVertical} />
-      <Compteur valeur={profil.xp} libelle="XP" />
     </View>
   );
 }
@@ -78,60 +96,52 @@ function Compteur({ valeur, libelle }: { valeur: number; libelle: string }) {
 }
 
 const styles = StyleSheet.create({
-  identite: {
-    alignItems: 'center',
-    gap: 4,
-    paddingTop: 12,
-    paddingBottom: 24,
-    paddingHorizontal: 16,
-    borderRadius: 14,
-    backgroundColor: couleurs.encre,
-  },
-  medaillon: {
-    position: 'absolute',
-    right: 4,
-    bottom: 6,
+  entete: { gap: 14, paddingTop: 4 },
+  ligne: { flexDirection: 'row', alignItems: 'center', gap: 18 },
+  // Un fin cercle corail, séparé de la photo par un liseré couleur papier.
+  anneau: {
     padding: 3,
     borderRadius: 50,
-    backgroundColor: couleurs.encre,
+    borderWidth: 2.5,
+    borderColor: couleurs.corail,
+  },
+  embleme: { position: 'absolute', right: -12, bottom: -8 },
+  compteurs: { flex: 1, flexDirection: 'row', justifyContent: 'space-around' },
+  compteur: { alignItems: 'center', gap: 1, paddingHorizontal: 2 },
+  valeur: { fontFamily: polices.titre, fontSize: 22, letterSpacing: -0.5, color: couleurs.encre },
+  libelle: { fontFamily: polices.texte, fontSize: 13, color: couleurs.encre2 },
+  identite: { gap: 4 },
+  lignePseudo: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 8 },
+  pseudo: {
+    fontFamily: polices.titre,
+    fontSize: 22,
+    letterSpacing: -0.5,
+    color: couleurs.encre,
+  },
+  badge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 4,
+    backgroundColor: couleurs.sapinDoux,
+  },
+  texteBadge: { fontFamily: polices.texteGras, fontSize: 12, color: couleurs.succes },
+  ligneNiveau: { flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start' },
+  niveau: {
+    fontFamily: polices.texteGras,
+    fontSize: 12,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+    color: couleurs.corail,
   },
   bio: {
-    maxWidth: 420,
-    marginTop: 10,
+    marginTop: 4,
     fontFamily: polices.texte,
     fontSize: 15,
     lineHeight: 21,
-    textAlign: 'center',
-    color: '#E4DDD2',
+    color: couleurs.encre,
   },
-  rang: {
-    fontFamily: polices.texteGras,
-    fontSize: 13,
-    letterSpacing: 1.2,
-    textTransform: 'uppercase',
-    color: '#F5C24C',
-  },
-  pseudo: {
-    marginTop: 4,
-    fontFamily: polices.titre,
-    fontSize: 30,
-    letterSpacing: -0.8,
-    color: couleurs.surface,
-  },
-  ligneRole: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  role: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  texteRole: { fontFamily: polices.texteGras, fontSize: 15, color: couleurs.surface },
-  depuis: { fontFamily: polices.texte, fontSize: 15, color: '#B8AFA3' },
-  compteurs: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 14,
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: couleurs.trait,
-  },
-  compteur: { flex: 1, alignItems: 'center', gap: 2, paddingHorizontal: 4 },
-  valeur: { fontFamily: polices.titre, fontSize: 26, letterSpacing: -0.6, color: couleurs.encre },
-  libelle: { fontFamily: polices.texte, fontSize: 13, color: couleurs.encre2, textAlign: 'center' },
-  separateurVertical: { width: 1, alignSelf: 'stretch', backgroundColor: couleurs.trait },
+  depuis: { marginTop: 2, fontFamily: polices.texte, fontSize: 13, color: couleurs.encre3 },
 });

@@ -3,7 +3,7 @@ import { useLocalSearchParams } from 'expo-router';
 import { ChevronLeft, ChevronRight } from 'lucide-react-native';
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { CarteProfil, CompteursProfil } from '@/components/carte-profil';
+import { CarteProfil } from '@/components/carte-profil';
 import { LigneFiche } from '@/components/ligne-fiche';
 import { MessageErreur } from '@/components/message-erreur';
 import { couleurs, polices } from '@/constants/theme';
@@ -43,7 +43,6 @@ export default function ProfilPublic() {
   return (
     <ScrollView contentContainerStyle={styles.page} showsVerticalScrollIndicator={false}>
       <CarteProfil profil={profil.donnees} />
-      <CompteursProfil profil={profil.donnees} />
 
       <Text style={styles.titreSection} accessibilityRole="header">
         Ses activités
