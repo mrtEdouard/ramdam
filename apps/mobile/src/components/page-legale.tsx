@@ -43,13 +43,13 @@ export function PageLegale({ page }: { page: Page }) {
 export function LiensLegaux() {
   return (
     <View style={styles.liens}>
-      <Link href="/mentions-legales" style={styles.lien}>
+      <Link href="/legal/mentions-legales" style={styles.lien}>
         Mentions légales
       </Link>
-      <Link href="/cgu" style={styles.lien}>
+      <Link href="/legal/cgu" style={styles.lien}>
         Conditions d’utilisation
       </Link>
-      <Link href="/confidentialite" style={styles.lien}>
+      <Link href="/legal/confidentialite" style={styles.lien}>
         Confidentialité
       </Link>
     </View>

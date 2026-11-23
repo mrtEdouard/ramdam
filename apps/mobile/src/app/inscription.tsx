@@ -190,11 +190,11 @@ export default function Inscription() {
         {/* Liens hors de la case à cocher : un appui dessus ouvre la page sans cocher la case. */}
         <Text style={styles.lire}>
           Lire les{' '}
-          <Link href="/cgu" style={texte.lien}>
+          <Link href="/legal/cgu" style={texte.lien}>
             conditions d’utilisation
           </Link>{' '}
           et la{' '}
-          <Link href="/confidentialite" style={texte.lien}>
+          <Link href="/legal/confidentialite" style={texte.lien}>
             politique de confidentialité
           </Link>
         </Text>

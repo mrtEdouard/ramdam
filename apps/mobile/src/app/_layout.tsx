@@ -59,10 +59,13 @@ function Navigation({ pret }: { pret: boolean }) {
         <Stack.Screen name="connexion" />
         <Stack.Screen name="inscription" />
       </Stack.Protected>
-      {/* Pages légales : publiques, lisibles connecté ou non (avant d'accepter les CGU). */}
-      <Stack.Screen name="mentions-legales" options={pageLegale('Mentions légales')} />
-      <Stack.Screen name="cgu" options={pageLegale('Conditions d’utilisation')} />
-      <Stack.Screen name="confidentialite" options={pageLegale('Confidentialité')} />
+      {/* Pages légales : publiques, lisibles connecté ou non (avant d'accepter les CGU).
+          Rangées dans legal/ : quand une adresse n'est pas accessible (« / » déconnecté),
+          le routeur ouvre le premier écran disponible par ordre alphabétique. Elles doivent
+          donc venir après « connexion », sinon on arrive sur les CGU au lieu de la connexion. */}
+      <Stack.Screen name="legal/mentions-legales" options={pageLegale('Mentions légales')} />
+      <Stack.Screen name="legal/cgu" options={pageLegale('Conditions d’utilisation')} />
+      <Stack.Screen name="legal/confidentialite" options={pageLegale('Confidentialité')} />
     </Stack>
   );
 }
