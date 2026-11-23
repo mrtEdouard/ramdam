@@ -16,17 +16,25 @@ const ages = [4, 6, 8, 10, 12, 15];
 
 export default function Activites() {
   const { session } = useSession();
-  // Le type choisi sur l'accueil arrive dans l'adresse : /activites?type=VEILLEE
-  const parametres = useLocalSearchParams<{ type?: TypeFiche }>();
+  // La recherche faite sur l'accueil arrive dans l'adresse : /activites?type=VEILLEE&age=8
+  const parametres = useLocalSearchParams<{ type?: TypeFiche; recherche?: string; age?: string }>();
   const [type, setType] = useState<TypeFiche | undefined>(parametres.type);
-  const [age, setAge] = useState<number | undefined>();
-  const [saisie, setSaisie] = useState('');
-  const [recherche, setRecherche] = useState('');
+  const [age, setAge] = useState<number | undefined>(
+    parametres.age ? Number(parametres.age) : undefined,
+  );
+  const [saisie, setSaisie] = useState(parametres.recherche ?? '');
+  const [recherche, setRecherche] = useState(parametres.recherche ?? '');
   const [resultat, setResultat] = useState<PageDeFiches | null>(null);
   const [chargement, setChargement] = useState(false);
   const [erreur, setErreur] = useState<string | null>(null);
 
   useEffect(() => setType(parametres.type), [parametres.type]);
+  useEffect(() => {
+    if (parametres.recherche !== undefined) setSaisie(parametres.recherche);
+  }, [parametres.recherche]);
+  useEffect(() => {
+    if (parametres.age !== undefined) setAge(Number(parametres.age));
+  }, [parametres.age]);
 
   // La recherche part 300 ms après la dernière touche, pas à chaque lettre tapée.
   useEffect(() => {

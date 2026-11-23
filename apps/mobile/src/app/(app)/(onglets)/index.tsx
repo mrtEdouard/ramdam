@@ -1,17 +1,7 @@
-import type { FicheResume, PageDeFiches, PageDOffres, Profil, TypeFiche } from '@ramdam/shared';
+import type { FicheResume, PageDeFiches, PageDOffres, Profil } from '@ramdam/shared';
 import { Link } from 'expo-router';
-import {
-  Bell,
-  Dices,
-  Flag,
-  Moon,
-  Palette,
-  Search,
-  Sparkles,
-  Volleyball,
-  type LucideIcon,
-} from 'lucide-react-native';
-import { Fragment } from 'react';
+import { Bell } from 'lucide-react-native';
+import { Fragment, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Avatar } from '@/components/avatar';
@@ -21,18 +11,10 @@ import { InvitationInstallation } from '@/components/fenetre-installation';
 import { LigneOffre } from '@/components/ligne-offre';
 import { Logo } from '@/components/logo';
 import { MessageErreur } from '@/components/message-erreur';
+import { RechercheAccueil } from '@/components/recherche-accueil';
 import { couleurs, polices } from '@/constants/theme';
 import { useRequete } from '@/hooks/use-requete';
 import { useSession } from '@/session/session-context';
-
-const categories: { type: TypeFiche; libelle: string; icone: LucideIcon }[] = [
-  { type: 'VEILLEE', libelle: 'Veillées', icone: Moon },
-  { type: 'GRAND_JEU', libelle: 'Grands jeux', icone: Flag },
-  { type: 'JEU', libelle: 'Jeux', icone: Dices },
-  { type: 'MANUEL', libelle: 'Manuel', icone: Palette },
-  { type: 'SPORTIF', libelle: 'Sportif', icone: Volleyball },
-  { type: 'AUTRE', libelle: 'Autres', icone: Sparkles },
-];
 
 export default function Accueil() {
   const { session } = useSession();
@@ -43,6 +25,7 @@ export default function Accueil() {
   const nonLues = useRequete<{ nombre: number }>('/notifications/non-lues').donnees?.nombre ?? 0;
   // Ma photo de profil, en haut à droite (rechargée au retour, après un changement de photo).
   const monAvatar = useRequete<Profil>('/profils/moi').donnees?.avatarUrl;
+  const [rechercheActive, setRechercheActive] = useState(false);
   if (!session) {
     return null;
   }
@@ -89,76 +72,60 @@ export default function Accueil() {
           <Text style={styles.question}>Qu'est-ce qu'on anime cette semaine ?</Text>
         </View>
 
-        {/* Raccourci vers la recherche de la page Activités. */}
-        <Link href="/activites" asChild>
-          <Pressable style={styles.recherche} accessibilityLabel="Rechercher une activité">
-            <Search size={20} color={couleurs.encre2} strokeWidth={1.75} />
-            <Text style={styles.texteRecherche}>Une veillée, un âge, un thème…</Text>
-          </Pressable>
-        </Link>
+        {/* Recherche et catégories : les résultats s'affichent ici même. */}
+        <RechercheAccueil changerActif={setRechercheActive} />
 
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.horsMarge}
-          contentContainerStyle={styles.categories}
-        >
-          {categories.map(({ type, libelle, icone: Icone }) => (
-            <Link key={type} href={{ pathname: '/activites', params: { type } }} asChild>
-              <Pressable
-                style={styles.categorie}
-                accessibilityLabel={`Voir les ${libelle.toLowerCase()}`}
-              >
-                <Icone size={18} color={couleurs.corail} strokeWidth={2} />
-                <Text style={styles.texteCategorie}>{libelle}</Text>
-              </Pressable>
-            </Link>
-          ))}
-        </ScrollView>
-
-        {erreur && (
-          <View style={styles.espace}>
-            <MessageErreur message={erreur} />
-          </View>
-        )}
-
-        {aLaUne.donnees && (
+        {/* Pendant une recherche, les sections de l'accueil laissent la place aux résultats. */}
+        {!rechercheActive && (
           <>
-            <EnTeteSection titre="À la une" sousTitre="L'activité la plus aimée de la semaine" />
-            <CarteUne fiche={aLaUne.donnees} />
+            {erreur && (
+              <View style={styles.espace}>
+                <MessageErreur message={erreur} />
+              </View>
+            )}
+
+            {aLaUne.donnees && (
+              <>
+                <EnTeteSection
+                  titre="À la une"
+                  sousTitre="L'activité la plus aimée de la semaine"
+                />
+                <CarteUne fiche={aLaUne.donnees} />
+              </>
+            )}
+
+            <EnTeteSection titre="Activités récentes publiées" lien="/activites" />
+            {recentes.chargement && !recentes.donnees ? (
+              <ActivityIndicator color={couleurs.corail} style={styles.chargement} />
+            ) : autresFiches.length > 0 ? (
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                style={styles.horsMarge}
+                contentContainerStyle={styles.carrousel}
+              >
+                {autresFiches.map((fiche) => (
+                  <CarteFiche key={fiche.id} fiche={fiche} />
+                ))}
+              </ScrollView>
+            ) : (
+              <Text style={styles.vide}>Aucune autre activité publiée pour l'instant.</Text>
+            )}
+
+            <EnTeteSection titre="Prochaines offres" lien="/offres" />
+            {offres.donnees?.offres.length === 0 ? (
+              <Text style={styles.vide}>Aucune offre ouverte pour l'instant.</Text>
+            ) : (
+              <View style={styles.panneauOffres}>
+                {offres.donnees?.offres.map((offre, position) => (
+                  <Fragment key={offre.id}>
+                    {position > 0 && <View style={styles.separateur} />}
+                    <LigneOffre offre={offre} />
+                  </Fragment>
+                ))}
+              </View>
+            )}
           </>
-        )}
-
-        <EnTeteSection titre="Activités récentes publiées" lien="/activites" />
-        {recentes.chargement && !recentes.donnees ? (
-          <ActivityIndicator color={couleurs.corail} style={styles.chargement} />
-        ) : autresFiches.length > 0 ? (
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={styles.horsMarge}
-            contentContainerStyle={styles.carrousel}
-          >
-            {autresFiches.map((fiche) => (
-              <CarteFiche key={fiche.id} fiche={fiche} />
-            ))}
-          </ScrollView>
-        ) : (
-          <Text style={styles.vide}>Aucune autre activité publiée pour l'instant.</Text>
-        )}
-
-        <EnTeteSection titre="Prochaines offres" lien="/offres" />
-        {offres.donnees?.offres.length === 0 ? (
-          <Text style={styles.vide}>Aucune offre ouverte pour l'instant.</Text>
-        ) : (
-          <View style={styles.panneauOffres}>
-            {offres.donnees?.offres.map((offre, position) => (
-              <Fragment key={offre.id}>
-                {position > 0 && <View style={styles.separateur} />}
-                <LigneOffre offre={offre} />
-              </Fragment>
-            ))}
-          </View>
         )}
       </ScrollView>
     </SafeAreaView>
@@ -239,35 +206,9 @@ const styles = StyleSheet.create({
     color: couleurs.encre,
   },
   question: { fontFamily: polices.texte, fontSize: 16, color: couleurs.encre2 },
-  recherche: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    minHeight: 52,
-    marginTop: 18,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: couleurs.trait,
-    backgroundColor: couleurs.surface,
-  },
-  texteRecherche: { fontFamily: polices.texte, fontSize: 15, color: couleurs.encre2 },
   // Les listes horizontales débordent jusqu'aux bords de l'écran,
   // mais leur premier élément reste aligné sur la marge.
   horsMarge: { marginHorizontal: -MARGE },
-  categories: { gap: 8, paddingHorizontal: MARGE, paddingTop: 14 },
-  categorie: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    minHeight: 40,
-    paddingHorizontal: 14,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: couleurs.trait,
-    backgroundColor: couleurs.surface,
-  },
-  texteCategorie: { fontFamily: polices.texteMoyen, fontSize: 14, color: couleurs.encre },
   enTeteSection: {
     flexDirection: 'row',
     alignItems: 'baseline',
