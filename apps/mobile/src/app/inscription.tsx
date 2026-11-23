@@ -187,6 +187,17 @@ export default function Inscription() {
         {erreurDe('cguAcceptees') && (
           <Text style={styles.erreurCgu}>{erreurDe('cguAcceptees')}</Text>
         )}
+        {/* Liens hors de la case à cocher : un appui dessus ouvre la page sans cocher la case. */}
+        <Text style={styles.lire}>
+          Lire les{' '}
+          <Link href="/cgu" style={texte.lien}>
+            conditions d’utilisation
+          </Link>{' '}
+          et la{' '}
+          <Link href="/confidentialite" style={texte.lien}>
+            politique de confidentialité
+          </Link>
+        </Text>
       </View>
 
       {erreurGenerale && <MessageErreur message={erreurGenerale} />}
@@ -198,6 +209,7 @@ export default function Inscription() {
 
 const styles = StyleSheet.create({
   groupe: { gap: 8 },
+  lire: { fontFamily: polices.texte, fontSize: 14, color: couleurs.encre2 },
   groupeChamps: { gap: 20 },
   libelle: { fontFamily: polices.texteGras, fontSize: 15, color: couleurs.encre },
   cartes: { flexDirection: 'row', gap: 12 },

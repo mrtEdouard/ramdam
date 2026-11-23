@@ -3,6 +3,7 @@ import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } fr
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Logo } from '@/components/logo';
 import { MessageErreur } from '@/components/message-erreur';
+import { LiensLegaux } from '@/components/page-legale';
 import { couleurs, polices } from '@/constants/theme';
 import { useSession } from '@/session/session-context';
 
@@ -42,6 +43,7 @@ export function EcranAuth({ titre, intro, pied, children }: Props) {
             </View>
             <View style={styles.carte}>{children}</View>
             <View style={styles.pied}>{pied}</View>
+            <LiensLegaux />
           </View>
         </ScrollView>
       </KeyboardAvoidingView>

@@ -18,6 +18,7 @@ import Animated, { FadeIn, FadeInUp, FadeOut } from 'react-native-reanimated';
 import { CarteProfil, CompteursProfil } from '@/components/carte-profil';
 import { Embleme } from '@/components/embleme';
 import { FenetreInstallation } from '@/components/fenetre-installation';
+import { LiensLegaux } from '@/components/page-legale';
 import { MessageErreur } from '@/components/message-erreur';
 import { couleurs, polices } from '@/constants/theme';
 import { ErreurApi, lire } from '@/lib/api';
@@ -268,6 +269,8 @@ export default function PageProfil() {
         <LogOut size={20} color={couleurs.erreur} strokeWidth={2} />
         <Text style={styles.texteDeconnexion}>Se déconnecter</Text>
       </Pressable>
+
+      <LiensLegaux />
     </ScrollView>
   );
 }
